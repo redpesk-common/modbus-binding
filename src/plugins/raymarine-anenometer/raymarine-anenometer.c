@@ -27,7 +27,7 @@ static int initWindDirection (ModbusSourceT *source, json_object *argsJ) {
     ctx->offset_angle_deg = 0;
 
     // extract 'offset' value from json sensor config args
-    if(json_object_object_get_ex(argsJ, "step", &tmpJ) < 0) {
+    if(json_object_object_get_ex(argsJ, "offset", &tmpJ) < 0) {
         free(ctx);
         return -1;
     }
