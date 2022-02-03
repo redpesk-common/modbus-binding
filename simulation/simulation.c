@@ -380,12 +380,14 @@ OnError:
  * 
  */
 static void _print_usage() {
-    fprintf(stdout, "This is the usage for the modbus-simulation binary:\n\
+    fprintf(stdout,
+"This is the usage for the modbus-simulation binary:\n\
     -a : TCP address of the emulated modbus device\n\
     -p : TCP port of the emulated modbus device\n\
     -h : Helper (print this)\n\
     \n\
-example: modbus-simulation -a 127.0.0.1 -p 2000\n");
+example: modbus-simulation -a 127.0.0.1 -p 2000\n"
+    );
     exit(0);
 }
 
@@ -440,7 +442,8 @@ static void _parsed_arguments(int argc, char **argv, char **tcp_address, uint16_
 /////////////////////////////////////////////////////////////////////////////
 
 /** 
- * @brief Create a TCP server and emulate a modbus device through protocol modbus TCP
+ * @brief Create a TCP server and emulate a modbus device through protocol
+ *  modbus TCP
  * 
  * ==========================================================================
  * Command: 

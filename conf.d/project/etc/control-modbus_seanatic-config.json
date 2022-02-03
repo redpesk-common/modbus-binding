@@ -10,7 +10,7 @@
       {
         "uid": "Siemens 1510SP",
         "info": "Siemens 1510SP Profinet/Modbus",
-        "uri" : "tcp://127.0.0.1:2000",
+        "uri" : "tcp://10.29.0.11:503",
         "slaveid": 1,
         "timeout": 250,
         "autostart" : 1,
