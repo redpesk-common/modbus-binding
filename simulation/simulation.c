@@ -186,7 +186,7 @@ uint16_t modbus_rtu_crc(uint8_t* buf, int len) {
     uint16_t crc = 0xFFFF;
   
     for (int pos = 0; pos < len; pos++) {
-        crc ^= (uint16_t)buf[pos];          // XOR byte into least sig. byte of crc
+        crc = (uint16_t) (crc ^ (uint16_t)buf[pos]); // XOR byte into least sig. byte of crc
   
         for (int i = 8; i != 0; i--) {      // Loop over each bit
             if ((crc & 0x0001) != 0) {      // If the LSB is set
@@ -218,7 +218,7 @@ static int _copy_mbap_header(uint8_t *response_buff, uint8_t *command_buff) {
 
     // Determine response length
     uint16_t count = (uint16_t) (GET_COUNT_H(command_buff) << 8 | GET_COUNT_L(command_buff));
-    uint16_t data_length = 1 + 2 * (count) + 1 + 1/* + 2*/; // response will hold SlaveID + Function ID + count data in 16 bites (2 x 8 bites) + CRC
+    uint16_t data_length = (uint16_t) (1 + 2 * count + 1 + 1)/* + 2*/; // response will hold SlaveID + Function ID + count data in 16 bites (2 x 8 bites) + CRC
     response_buff[4] = (uint8_t) (data_length >> 8);
     response_buff[5] = (uint8_t) data_length;
 
@@ -255,12 +255,12 @@ static int _response_modbus(connection_t *connection, uint8_t *command_buff, ssi
     if (GET_COMMAND(command_buff) == MODBUS_CMD_READ) {
         uint16_t count = (uint16_t) (GET_COUNT_H(command_buff) << 8 | GET_COUNT_L(command_buff));
 
-        response_buffer[8] = 2*count; // Byte count: It will have count*uint16_t, so count*2*bytes
+        response_buffer[8] = (uint8_t) (2*count); // Byte count: It will have count*uint16_t, so count*2*bytes
 
         // Set data following count of register
         for (uint16_t idx = 0; idx < count; idx ++) {
             response_buffer[9+(2*idx)] = 0x00;
-            response_buffer[9+(2*idx + 1)] = rand() % 2;
+            response_buffer[9+(2*idx + 1)] = (uint8_t) rand() % 2;
         }
 
         // Copy the header
@@ -433,7 +433,7 @@ static void _parsed_arguments(int argc, char **argv, char **tcp_address, uint16_
         _print_usage();
     } else {
         asprintf(tcp_address, "%s", opt_address);
-        *tcp_port = atoi(opt_port);
+        *tcp_port = (uint16_t ) atoi(opt_port);
     }
 }
 
@@ -491,7 +491,7 @@ int main(int argc, char **argv) {
     struct sockaddr_in client = {0};
 
     // Initiate seed for random value
-    srand(time(NULL));
+    srand((uint) time(NULL));
 
     // Create socket
     _global_sockfd = socket(AF_INET, SOCK_STREAM, 0);
