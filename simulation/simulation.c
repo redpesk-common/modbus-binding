@@ -126,6 +126,12 @@ connection_t _global_connection_data_arr[TCP_MAX_CONN] = {0};
 int _global_sockfd = 0; 
 
 /////////////////////////////////////////////////////////////////////////////
+//                          EXTERNAL VARIABLES                             //
+/////////////////////////////////////////////////////////////////////////////
+
+extern uint16_t seanatic_data_static[115];
+
+/////////////////////////////////////////////////////////////////////////////
 //                          UTILS FUNCTIONS                                //
 /////////////////////////////////////////////////////////////////////////////
 
@@ -254,13 +260,14 @@ static int _response_modbus(connection_t *connection, uint8_t *command_buff, ssi
     // Create the fake response
     if (GET_COMMAND(command_buff) == MODBUS_CMD_READ) {
         uint16_t count = (uint16_t) (GET_COUNT_H(command_buff) << 8 | GET_COUNT_L(command_buff));
+        uint16_t register_start = (uint16_t) (GET_REGISTER_H(command_buff) << 8 | GET_REGISTER_L(command_buff));
 
         response_buffer[8] = (uint8_t) (2*count); // Byte count: It will have count*uint16_t, so count*2*bytes
 
-        // Set data following count of register
+        // Set data following count of register( 1 register = INT16)
         for (uint16_t idx = 0; idx < count; idx ++) {
-            response_buffer[9+(2*idx)] = 0x00;
-            response_buffer[9+(2*idx + 1)] = (uint8_t) rand() % 2;
+            response_buffer[9+(2*idx)] = (uint8_t) ((seanatic_data_static[idx + register_start - 1] >> 8)&0xff);
+            response_buffer[9+(2*idx+1)] = (uint8_t) (seanatic_data_static[idx + register_start - 1] & 0xff) + (uint8_t) rand() % 3;
         }
 
         // Copy the header
