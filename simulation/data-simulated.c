@@ -17,7 +17,7 @@
  */
 
 #include <stdint.h>
-uint16_t seanatic_data_static[115] = {
+uint16_t modbus_simu_data_static[115] = {
 0b0010000000000000,
 0b0001000000000000,
 0b0000100000000000,

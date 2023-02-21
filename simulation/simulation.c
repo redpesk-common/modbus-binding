@@ -32,7 +32,7 @@
 #define BUFFER_DATA_LENGTH          24
 #define RESPONSE_DATA_LENGTH        128
 
-// -- Usefull macro
+// -- Useful macro
 #define SLEEP_MS_TO_US              1000
 
 // -- Getter modbus command buffer
@@ -94,7 +94,7 @@ enum {
 
 /**
  * @brief Hold information about connection device
- * 
+ *
  * @param idx       Index of the connection - the n°
  * @param state     Connection state, could be  established or not
  * @param thread_id ID of the connection thread
@@ -115,21 +115,21 @@ typedef struct {
 
 /**
  * @brief Store an array of connection data
- * 
+ *
  */
 connection_t _global_connection_data_arr[TCP_MAX_CONN] = {0};
 
 /**
  * @brief Store the global tcp socket fd
- * 
+ *
  */
-int _global_sockfd = 0; 
+int _global_sockfd = 0;
 
 /////////////////////////////////////////////////////////////////////////////
 //                          EXTERNAL VARIABLES                             //
 /////////////////////////////////////////////////////////////////////////////
 
-extern uint16_t seanatic_data_static[115];
+extern uint16_t modbus_simu_data_static[115];
 
 /////////////////////////////////////////////////////////////////////////////
 //                          UTILS FUNCTIONS                                //
@@ -156,11 +156,11 @@ static void _signal_handler(const int signum) {
     case SIGINT:
         printf("/!\\ SIGINT caught\n");
         break;
-    
+
     case SIGSEGV:
         printf("/!\\ SIGSEGV caught\n");
         break;
-    
+
     default:
         printf("/!\\ UNKNOWN signal caught\n");
         break;
@@ -183,17 +183,17 @@ static void _signal_handler(const int signum) {
 
 /**
  * @brief Calculate the modbus rtu CRC16
- * 
+ *
  * @param buf   buffer to calculate the CRC
  * @param len   buffer length
  * @return      CRC16 calculated
  */
 uint16_t modbus_rtu_crc(uint8_t* buf, int len) {
     uint16_t crc = 0xFFFF;
-  
+
     for (int pos = 0; pos < len; pos++) {
         crc = (uint16_t) (crc ^ (uint16_t)buf[pos]); // XOR byte into least sig. byte of crc
-  
+
         for (int i = 8; i != 0; i--) {      // Loop over each bit
             if ((crc & 0x0001) != 0) {      // If the LSB is set
                 crc >>= 1;                  // Shift right and XOR 0xA001
@@ -209,10 +209,10 @@ uint16_t modbus_rtu_crc(uint8_t* buf, int len) {
 
 /**
  * @brief Copy the header of the modbus command to the response
- * 
+ *
  * @param response_buff     Response buffer where header will be copy
  * @param command_buff      Command buffer where header comes from
- * @return                  0 in success negative optherwise
+ * @return                  0 in success negative otherwise
  */
 static int _copy_mbap_header(uint8_t *response_buff, uint8_t *command_buff) {
     (response_buff)[0] = GET_TRANS_ID_H(command_buff);
@@ -239,15 +239,15 @@ static int _copy_mbap_header(uint8_t *response_buff, uint8_t *command_buff) {
 
 /**
  * @brief Send the correct response following the modbus command received
- * 
+ *
  * @param connection    Connection struct hold
  * @param command_buff  Command buffer received
  * @param command_len   Length of the command buffer
- * @return 0 in success negative otherwise 
+ * @return 0 in success negative otherwise
  */
 static int _response_modbus(connection_t *connection, uint8_t *command_buff, ssize_t command_len) {
     uint16_t data_length = (uint16_t) (GET_DATA_LENGTH_H(command_buff) << 8 | GET_DATA_LENGTH_L(command_buff));
-    
+
     // Check if we received the entire command data to avoid segfault
     if ((6+data_length) != command_len) {
         fprintf(stderr, "something wrong with the buffer length: %ld, command length: %u\n", command_len, data_length);
@@ -266,8 +266,8 @@ static int _response_modbus(connection_t *connection, uint8_t *command_buff, ssi
 
         // Set data following count of register( 1 register = INT16)
         for (uint16_t idx = 0; idx < count; idx ++) {
-            response_buffer[9+(2*idx)] = (uint8_t) ((seanatic_data_static[idx + register_start - 1] >> 8)&0xff);
-            response_buffer[9+(2*idx+1)] = (uint8_t) (seanatic_data_static[idx + register_start - 1] & 0xff) + (uint8_t) rand() % 3;
+            response_buffer[9+(2*idx)] = (uint8_t) ((modbus_simu_data_static[idx + register_start - 1] >> 8)&0xff);
+            response_buffer[9+(2*idx+1)] = (uint8_t) (modbus_simu_data_static[idx + register_start - 1] & 0xff) + (uint8_t) rand() % 3;
         }
 
         // Copy the header
@@ -307,9 +307,9 @@ static int _response_modbus(connection_t *connection, uint8_t *command_buff, ssi
 /**
  * @brief Take care about the device connection.
  *  Then wait at epoll event
- * 
+ *
  * @param   ctx connection data structure
- * @return  void* 
+ * @return  void*
  */
 static void *_monitor_connection_entry(void *ctx) {
     connection_t *connection = (connection_t *)ctx;
@@ -366,7 +366,7 @@ static void *_monitor_connection_entry(void *ctx) {
                         fprintf(stdout, "0x%02X ", buffer[index]);
                     }
                     fprintf(stdout, "(size :%ld)\n", size);
-                
+
                     if (_response_modbus(connection, buffer, size) < 0) {
                         fprintf(stderr, "Failed to create response for the connection n°%i\n", connection->idx);
                     }
@@ -384,7 +384,7 @@ OnError:
 
 /**
  * @brief Print to th stdout, the usage of the generated executable
- * 
+ *
  */
 static void _print_usage() {
     fprintf(stdout,
@@ -400,7 +400,7 @@ example: modbus-simulation -a 127.0.0.1 -p 2000\n"
 
 /**
  * @brief Parsed option arguments passed to the executable
- * 
+ *
  * @param argc          Count og the arguments
  * @param argv          List of arguments
  * @param tcp_address   Address tcp caught from option args
@@ -423,7 +423,7 @@ static void _parsed_arguments(int argc, char **argv, char **tcp_address, uint16_
         case 'h':
             _print_usage();
             break;
-        
+
         default:
             fprintf (stderr, "Unknown option `-%c'.\n", optopt);
             _print_usage();
@@ -448,15 +448,15 @@ static void _parsed_arguments(int argc, char **argv, char **tcp_address, uint16_
 //                          MAIN FUNCTION                                  //
 /////////////////////////////////////////////////////////////////////////////
 
-/** 
+/**
  * @brief Create a TCP server and emulate a modbus device through protocol
  *  modbus TCP
- * 
+ *
  * ==========================================================================
- * Command: 
+ * Command:
  * --------
  *  MBAP Header:
- *      Byte[0:1]   -> Transaction Identifier (2 octets) 
+ *      Byte[0:1]   -> Transaction Identifier (2 octets)
  *      Byte[2:3]   -> 0 = MODBUS protocol (2 octet)
  *      Bytes[4:5]  -> length command data (n octets) (Take care Slave Id, function code and data)
  *      Bytes[6]    -> Slave identifier (1 octet)
@@ -465,13 +465,13 @@ static void _parsed_arguments(int argc, char **argv, char **tcp_address, uint16_
  *  Data:
  *      Byte[8:9]   -> Register
  *      Byte[10:11] -> Count
- * 
+ *
  * Response:
  * ---------
  *  MBAP Header:
  *      Byte[0:1]   -> Transaction Identifier (2 octets) (same as command)
  *      Byte[2:3]   -> 0 = MODBUS protocol (2 octet)
- *      Bytes[4:5]  -> length respons data (n octets) (Take care Slave Id, function code and data)
+ *      Bytes[4:5]  -> length response data (n octets) (Take care Slave Id, function code and data)
  *      Bytes[6]    -> Slave identifier (1 octet) (same as command)
  *  Function code:
  *      Byte[7]     -> Code of the function (1 octet) (same as command)
@@ -479,8 +479,8 @@ static void _parsed_arguments(int argc, char **argv, char **tcp_address, uint16_
  *      Byte[8]     -> Byte count (1 octet)
  *      Byte[n]     -> Data coils
  *  ==========================================================================
- * 
- * @param argc    the count of parameter 
+ *
+ * @param argc    the count of parameter
  * @param argv    the list of parameter data
  */
 int main(int argc, char **argv) {
@@ -504,7 +504,7 @@ int main(int argc, char **argv) {
     _global_sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (_global_sockfd < 0)
         error("Failed to create socket !\n");
-    
+
     // Init servaddr
     servaddr.sin_family = AF_INET;
     servaddr.sin_addr.s_addr = inet_addr(tcp_address);
@@ -542,7 +542,7 @@ int main(int argc, char **argv) {
         error("Failed to listen to the created socket !\n");
         close(_global_sockfd);
     }
-    
+
     // Create a signal handler
     signal(SIGSEGV, _signal_handler);
     signal(SIGINT, _signal_handler);
@@ -563,17 +563,17 @@ int main(int argc, char **argv) {
         }
         fprintf(stdout, "TCP server ready for incoming client ...\n");
         socklen_t clientlen = {0};
-        
+
         connection->conn_fd = accept(_global_sockfd, (struct sockaddr *)&client, &clientlen);
-        if (connection->conn_fd < 0) 
+        if (connection->conn_fd < 0)
             perror("Failed to accept client ...\n");
-        
+
         connection->state = CONNECTION_ESTABLISHED;
         fprintf(stdout, "connection n°%i established\n", connection->idx);
         // Create thread to take care about the connection with the client
         if (pthread_create(&connection->thread_id, NULL, _monitor_connection_entry, connection) < 0) {
             fprintf(stderr, "Failed to cerate thread for client n° %i\n", connection->idx);
-        }      
+        }
     }
     return 0;
 }
