@@ -1,37 +1,157 @@
 {
-    "$schema": "http://iot.bzh/download/public/schema/json/ctl-schema.json",
-    "metadata": {
-      "uid": "modbus-svc",
-      "version": "1.0",
-      "api": "modbus",
-      "info": "Seanatic bench 10.29.0.11:503 slaveid=1 Test Config"
-    },
-    "modbus": [
-      {
-        "uid": "Siemens 1510SP",
-        "info": "Siemens 1510SP Profinet/Modbus",
-        "uri" : "tcp://10.29.0.11:503",
-        "slaveid": 1,
-        "timeout": 250,
-        "autostart" : 1,
-        "prefix": "1510SP",
-        "privilege": "global privilege",
-        "sensors": [
-          {
-            "uid": "ana",
-            "type":  "REGISTER_HOLDING",
-            "format" : "INT16",
-            "register" : 0,
-            "count" : 8
-          },
-          {
-            "uid": "dig",
-            "type":  "REGISTER_HOLDING",
-            "format" : "INT16",
-            "register" : 8,
-            "count" : 8
-          }
-	      ]
-      }
-    ]
+  "$schema": "http://iot.bzh/download/public/schema/json/ctl-schema.json",
+  "metadata": {
+    "uid": "modbus-svc",
+    "version": "1.0",
+    "api": "modbus",
+    "info": "Seanatic simulation 127.0.0.1:2000"
+  },
+  "modbus": [
+    {
+      "uid": "Siemens 1510SP",
+      "info": "Siemens 1510SP Profinet/Modbus",
+      "uri" : "tcp://127.0.0.1:2000",
+      "slaveid": 1,
+      "timeout": 250,
+      "autostart" : 1,
+      "hertz": 1,
+      "prefix": "1510SP",
+      "privilege": "global privilege",
+      "sensors": [
+        {
+          "uid": "alarm_center_1",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT16",
+          "register" : 0,
+          "count" : 5
+        },
+        {
+          "uid": "flowmeter",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT16",
+          "register" : 6,
+          "count" : 10
+        },
+        {
+          "uid": "machine_air_pressure",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT16",
+          "register" : 16,
+          "count" : 1
+        },
+        {
+          "uid": "machine_air_temperature",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT16",
+          "register" : 17,
+          "count" : 1
+        },
+        {
+          "uid": "machine_air_humidity",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT16",
+          "register" : 18,
+          "count" : 1
+        },
+        {
+          "uid": "mp1_nox_emission",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT16",
+          "register" : 19,
+          "count" : 1
+        },
+        {
+          "uid": "mp1_o2_emission",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT16",
+          "register" : 20,
+          "count" : 1
+        },
+        {
+          "uid": "mp2_nox_emission",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT16",
+          "register" : 21,
+          "count" : 1
+        },
+        {
+          "uid": "mp2_o2_emission",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT16",
+          "register" : 22,
+          "count" : 1
+        },
+        {
+          "uid": "hour_meter",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT32",
+          "register" : 24,
+          "count" : 11
+        },
+        {
+          "uid": "measurement_central_da1",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT32",
+          "register" : 46,
+          "count" : 9
+        },
+        {
+          "uid": "measurement_central_da1_bis",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT16",
+          "register" : 64,
+          "count" : 2
+        },
+        {
+          "uid": "measurement_central_da2",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT32",
+          "register" : 66,
+          "count" : 9
+        },
+        {
+          "uid": "measurement_central_da2_bis",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT16",
+          "register" : 64,
+          "count" : 2
+        },
+        {
+          "uid": "comap_da1",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT16",
+          "register" : 86,
+          "count" : 7
+        },
+        {
+          "uid": "comap_da2",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT16",
+          "register" : 93,
+          "count" : 7
+        },
+        {
+          "uid": "comap_mp1",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT16",
+          "register" : 100,
+          "count" : 7
+        },
+        {
+          "uid": "comap_mp2",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT16",
+          "register" : 107,
+          "count" : 7
+        },
+        {
+          "uid": "weather_channel",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT16",
+          "register" : 114,
+          "count" : 3
+        }
+      ]
+    }
+  ]
 }
