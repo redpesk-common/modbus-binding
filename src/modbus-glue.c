@@ -24,6 +24,8 @@
 #define _GNU_SOURCE
 
 
+#include <netdb.h>
+#include <arpa/inet.h>
 #include <modbus.h>
 #include <errno.h>
 #include <sys/socket.h>
@@ -418,31 +420,44 @@ void ModbusSensorRequest (afb_req_t request, ModbusSensorT *sensor, json_object 
         return;
 }
 
-static char *ModbusParseURI (const char* uri, char **addr, int *port) {
+static int ModbusParseURI (const char* uri, char **addr, int *port) {
     #define TCP_PREFIX "tcp://"
-    char *chaine, *tcpport;
+    char *hostaddr, *tcpport, *uri_tmp;
     int idx;
     static int prefixlen = sizeof(TCP_PREFIX)-1;
+    char ip[100];
+    struct hostent *he;
+    struct in_addr **addrlist;
 
     // as today only TCP modbus is supported
     if (strncasecmp(uri, TCP_PREFIX, prefixlen)) goto OnErrorExit;
-
+    uri_tmp = strdup(uri);
     // break URI in substring ignoring leading tcp:
-    chaine= strdup(uri);   
-    for (idx=prefixlen; idx < strlen(chaine); idx ++) {
-        if (chaine[idx] == 0) break;
-        if (chaine[idx] == ':') chaine[idx] = 0;
+    for (idx=prefixlen; idx < strlen(uri_tmp); idx ++) {
+        if (uri_tmp[idx] == 0) break;
+        if (uri_tmp[idx] == ':') uri_tmp[idx] = 0;
     }
-
+    
     // extract IP addr and port
-    *addr = &chaine[prefixlen];
-    tcpport= &chaine[idx];
+    hostaddr = &uri_tmp[prefixlen];
+    tcpport= &uri_tmp[idx];
     sscanf (tcpport, "%d", port);
 
-    return chaine;
+    if ((he = gethostbyname(hostaddr)) == NULL) goto OnErrorExit;
+
+    addrlist = (struct in_addr **) he->h_addr_list;
+    for(idx = 0; addrlist[idx] != NULL; idx++){
+        //Return the first one;
+        strcpy(ip , inet_ntoa(*addrlist[idx]));
+        break;
+    }
+
+    *addr = strdup(ip);
+    free(uri_tmp);
+    return 0;
 
 OnErrorExit: 
-    return NULL;
+    return 1;
 }
 
 int ModbusRtuConnect (afb_api_t api, ModbusRtuT *rtu) {
@@ -450,8 +465,7 @@ int ModbusRtuConnect (afb_api_t api, ModbusRtuT *rtu) {
     char *addr;
     int  port;
 
-    char *dup = ModbusParseURI (rtu->uri, &addr, &port);
-    if (!dup) {
+    if (ModbusParseURI (rtu->uri, &addr, &port)) {
         AFB_API_ERROR(api, "ModbusRtuConnect: fail to parse uid=%s uri=%s", rtu->uid, rtu->uri);
         goto OnErrorExit;
     }
