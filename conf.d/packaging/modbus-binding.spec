@@ -4,7 +4,7 @@ Release: 1%{?dist}
 Summary: Binding to serve an API connected to modbus hardware
 Group:   Development/Libraries/C and C++
 License:  Apache-2.0
-URL: http://git.ovh.iot/redpesk/redpesk-common/modbus-binding
+URL: https://github.com/redpesk-industrial/modbus-binding
 Source: %{name}-%{version}.tar.gz
 
 BuildRequires:  afm-rpm-macros
@@ -29,14 +29,29 @@ Summary:        Simulate a modbus tcp device
 %description simulation
 Simulate a modbus tcp device
 
+%package seanatic-config
+Summary:        config file for seanatic
+Requires: %{name} = %{version}
+
+%description seanatic-config
+%summary
+
+%package kingpigeon-config
+Summary:        config file for kingpigeon
+Requires: %{name} = %{version}
+
+%description kingpigeon-config
+%summary
+
+%package raymarine-config
+Summary:        config file for raymarine
+Requires: %{name} = %{version}
+
+%description raymarine-config
+%summary
+
 %prep
 %autosetup -p 1
-
-%files
-%afm_files
-
-%files simulation
-%{_afmdatadir}/%{name}/bin/*
 
 %afm_package_test
 
@@ -49,16 +64,36 @@ Simulate a modbus tcp device
 %install
 %afm_makeinstall
 
+%files
+%afm_files
+%exclude %{_afmdatadir}/%{name}/etc/*
+
+%files simulation
+%{_afmdatadir}/bin/*
+
+%files seanatic-config
+%{_afmdatadir}/%{name}/etc/*seanatic*.json
+
+%files kingpigeon-config
+%{_afmdatadir}/%{name}/etc/*kingpigeon*.json
+
+%files raymarine-config
+%{_afmdatadir}/%{name}/etc/*raymarine*.json
+
+%define post_smack chsmack -a "App:%{name}:Conf" %{_afmdatadir}/%{name}/etc/*.json || :
+
+%post seanatic-config
+%post_smack
+
+%post kingpigeon-config
+%post_smack
+
+%post raymarine-config
+%post_smack
+
 
 %check
 
 %clean
 
-%%changelog
-
-* Fri Jul 23 2021 IoT.bzh(iotpkg) <redpesk.list@iot.bzh> 1.1.0+20210711+6+g342f915
-- Upgrade version from source commit sha: 342f915b5e6cdda9cbf17650cd70cdd04388bbc5
-- Commit message:
-- 	[Doc] Typo Redpesk/redpesk #2025
-- 	
-- 	Signed-off-by: Emilie Argouarch <emilie.argouarch@iot.bzh>
+%changelog
