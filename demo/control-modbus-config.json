@@ -1,0 +1,45 @@
+{
+  "$schema": "http://iot.bzh/download/public/schema/json/ctl-schema.json",
+  "metadata": {
+    "uid": "modbus-demo",
+    "version": "1.0",
+    "api": "modbus",
+    "info": "For demonstration purpose"
+  },
+  "modbus": [
+    {
+      "uid": "Demonstration sensor",
+      "info": "Sensor gathering several metrics",
+      "uri" : "tcp://__TO_COMPLETE__:2000",
+      "slaveid": 1,
+      "timeout": 250,
+      "autostart" : 1,
+      "hertz": 1,
+      "prefix": "demo",
+      "privilege": "global privilege",
+      "sensors": [
+        {
+          "uid": "pressure",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT16",
+          "register" : 16,
+          "count" : 1
+        },
+        {
+          "uid": "temperature",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT16",
+          "register" : 17,
+          "count" : 1
+        },
+        {
+          "uid": "humidity",
+          "type":  "REGISTER_HOLDING",
+          "format" : "INT16",
+          "register" : 18,
+          "count" : 1
+        }
+      ]
+    }
+  ]
+}
