@@ -67,7 +67,7 @@ Requires: %{name} = %{version}
 %exclude %{_afmdatadir}/%{name}/etc/*
 
 %files simulation
-%{_afmdatadir}/bin/*
+%{_bindir}/*
 
 %files seanatic-config
 %{_afmdatadir}/%{name}/etc/*seanatic*.json
