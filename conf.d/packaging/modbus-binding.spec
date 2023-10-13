@@ -53,8 +53,6 @@ Requires: %{name} = %{version}
 %prep
 %autosetup -p 1
 
-%afm_package_test
-
 %afm_package_devel
 
 %build
