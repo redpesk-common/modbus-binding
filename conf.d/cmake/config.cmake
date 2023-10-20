@@ -21,7 +21,7 @@ set(CMAKE_INSTALL_SO_NO_EXE 0)
 # Project Info
 # ------------------
 set(PROJECT_NAME modbus-binding)
-set(PROJECT_VERSION "1.2.0")
+set(PROJECT_VERSION "1.3.0")
 set(PROJECT_PRETTY_NAME "Modbus binding")
 set(PROJECT_DESCRIPTION "Provide a Modbus binding support TCP Modbus with format conversion for multi-register")
 set(PROJECT_URL "https://github.com/iotbzh/modbus-service")
@@ -73,7 +73,6 @@ set (gcc_minimal_version 4.9)
 set (PKG_REQUIRED_LIST
 	json-c
 	afb-binding
-	afb-libhelpers
 	afb-libcontroller
 	libmodbus
 )

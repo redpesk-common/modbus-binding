@@ -92,7 +92,7 @@ static void InfoRtu (afb_req_t request) {
                 break;
         }
         json_object_array_add(responseJ, elemJ);
-        }   
+        }
     } else {
         // build global info page for developper dynamic HTML5 page
         json_object *globalJ, *rtuJ, *rtusJ, *statusJ, *sensorsJ, *admincmdJ, *usageJ, *actionsJ;
@@ -113,7 +113,7 @@ static void InfoRtu (afb_req_t request) {
             err += wrap_json_pack (&actionsJ, "[s s s]", "info", "connect", "disconnect");
             err += wrap_json_pack (&usageJ, "{so, si}", "action", actionsJ, "verbose", 3);
             err += wrap_json_pack (&admincmdJ, "{ss ss ss so}", "uid", "admin", "info","RTU admin cmd", "verb", rtus[idx].adminapi, "usage", usageJ);
-            json_object_array_add (sensorsJ, admincmdJ); 
+            json_object_array_add (sensorsJ, admincmdJ);
 
             // create group object with rtu_info and rtu-sensors
             ModbusRtuSensorsId (&rtus[idx], 3, sensorsJ);
@@ -122,10 +122,10 @@ static void InfoRtu (afb_req_t request) {
                 AFB_DEBUG ("InfoRtu: Fail to wrap json sensors info rtu=%s", rtus[idx].uid);
                 goto OnErrorExit;
             }
-            json_object_array_add(rtusJ, rtuJ);      
+            json_object_array_add(rtusJ, rtuJ);
         }
 
-        err= wrap_json_pack (&responseJ, "{so so}", "metadata", globalJ, "groups", rtusJ); 
+        err= wrap_json_pack (&responseJ, "{so so}", "metadata", globalJ, "groups", rtusJ);
         if (err) {
             AFB_DEBUG ("InfoRtu: Fail to wrap json binding global response");
             goto OnErrorExit;
@@ -226,7 +226,7 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor, 
     }
 
     asprintf ((char**) &sensor->apiverb, "%s/%s", rtu->prefix, sensor->uid);
-    
+
     // if defined call format init callback
     if (sensor->format->initCB) {
         source.sensor = sensor->uid;
@@ -237,7 +237,7 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor, 
             AFB_API_ERROR(api, "SensorLoadOne: fail to init format verb=%s", sensor->apiverb);
             goto OnErrorExit;
         }
-        // remember context for further encode/decode callback 
+        // remember context for further encode/decode callback
         sensor->context = source.context;
     }
 
@@ -260,7 +260,7 @@ FunctionErrorExit:
     AFB_API_ERROR(api, "SensorLoadOne: missing/invalid Modus Type=%s JSON=%s", type, json_object_to_json_string(sensorJ));
     return -1;
 OnErrorExit:
-    return -1;    
+    return -1;
 }
 
 static int ModbusLoadOne(afb_api_t api, ModbusRtuT *rtu, json_object *rtuJ) {
@@ -269,7 +269,7 @@ static int ModbusLoadOne(afb_api_t api, ModbusRtuT *rtu, json_object *rtuJ) {
     afb_auth_t *authent=NULL;
 
     // should already be allocated
-    assert (rtuJ); 
+    assert (rtuJ);
     assert (api);
 
     memset(rtu, 0, sizeof (ModbusRtuT)); // default is empty
@@ -290,7 +290,7 @@ static int ModbusLoadOne(afb_api_t api, ModbusRtuT *rtu, json_object *rtuJ) {
     if (err) {
         AFB_API_ERROR(api, "Fail to parse rtu JSON : (%s)", json_object_to_json_string(rtuJ));
         goto OnErrorExit;
-    }  
+    }
 
     // create an admin command for RTU
     if (rtu->privileges) {
@@ -316,7 +316,7 @@ static int ModbusLoadOne(afb_api_t api, ModbusRtuT *rtu, json_object *rtuJ) {
     if (rtu->uri && rtu->autostart) {
         err = ModbusRtuConnect (api, rtu);
         if (err) {
-            AFB_API_ERROR(api, "ModbusLoadOne: fail to connect TCP/RTU uid=%s uri=%s", rtu->uid, rtu->uid);
+            AFB_API_ERROR(api, "ModbusLoadOne: fail to connect TTY/RTU uid=%s uri=%s", rtu->uid, rtu->uid);
             if (rtu->autostart > 1) goto OnErrorExit;
         }
     }
@@ -341,7 +341,7 @@ static int ModbusLoadOne(afb_api_t api, ModbusRtuT *rtu, json_object *rtuJ) {
     return 0;
 
 OnErrorExit:
-    return -1;    
+    return -1;
 }
 
 static int ModbusConfig(afb_api_t api, CtlSectionT *section, json_object *rtusJ) {
@@ -375,12 +375,12 @@ static int ModbusConfig(afb_api_t api, CtlSectionT *section, json_object *rtusJ)
         AFB_API_ERROR(api, "CtrlLoadOneApi fail to Registry static API verbs");
         goto OnErrorExit;
     }
-    
+
     return 0;
 
 OnErrorExit:
     AFB_API_ERROR (api, "Fail to initialise Modbus check Json Config");
-    return -1;    
+    return -1;
 }
 
 
@@ -412,7 +412,7 @@ static int CtrlLoadOneApi(void* vcbdata, afb_api_t api) {
     afb_api_on_init(api, CtrlInitOneApi);
     afb_api_seal(api);
 
-    return error;    
+    return error;
 }
 
 int afbBindingEntry(afb_api_t api) {
