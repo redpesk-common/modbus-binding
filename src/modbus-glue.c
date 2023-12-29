@@ -91,6 +91,7 @@ static int ModBusReadBits(ModbusSensorT *sensor, json_object **responseJ) {
   ModbusRtuT *rtu = sensor->rtu;
   modbus_t *ctx = (modbus_t *)rtu->context;
   int err;
+  if (sensor->rtu->semaphore) sem_wait (sensor->rtu->semaphore);
 
   // allocate input buffer on 1st read (all buffer are in 16bit for event diff
   // processing)
@@ -123,6 +124,7 @@ static int ModBusReadBits(ModbusSensorT *sensor, json_object **responseJ) {
       goto OnErrorExit;
   }
 
+  if (sensor->rtu->semaphore) sem_post (sensor->rtu->semaphore);
   return 0;
 
 OnErrorExit:
@@ -131,6 +133,8 @@ OnErrorExit:
                 rtu->uid, sensor->uid, modbus_strerror(errno));
   if (err == -1)
     ModbusReconnect(sensor);
+
+  if (sensor->rtu->semaphore) sem_post (sensor->rtu->semaphore);
   return 1;
 }
 
@@ -140,6 +144,7 @@ static int ModBusReadRegisters(ModbusSensorT *sensor, json_object **responseJ) {
   ModbusRtuT *rtu = sensor->rtu;
   modbus_t *ctx = (modbus_t *)rtu->context;
   int err, regcount;
+  if (sensor->rtu->semaphore) sem_wait (sensor->rtu->semaphore);
 
   regcount =
       sensor->count * format->nbreg; // number of register to read on device
@@ -175,6 +180,7 @@ static int ModBusReadRegisters(ModbusSensorT *sensor, json_object **responseJ) {
       goto OnErrorExit;
   }
 
+  if (sensor->rtu->semaphore) sem_post (sensor->rtu->semaphore);
   return 0;
 
 OnErrorExit:
@@ -183,6 +189,8 @@ OnErrorExit:
                 rtu->uid, sensor->uid, modbus_strerror(errno));
   if (err == -1)
     ModbusReconnect(sensor);
+
+  if (sensor->rtu->semaphore) sem_post (sensor->rtu->semaphore);
   return 1;
 }
 
@@ -192,6 +200,7 @@ static int ModBusWriteBits(ModbusSensorT *sensor, json_object *queryJ) {
   modbus_t *ctx = (modbus_t *)rtu->context;
   json_object *elemJ;
   int err, idx;
+  if (sensor->rtu->semaphore) sem_wait (sensor->rtu->semaphore);
 
   uint8_t *data8 =
       (uint8_t *)alloca(sizeof(uint8_t) * format->nbreg * sensor->count);
@@ -216,6 +225,8 @@ static int ModBusWriteBits(ModbusSensorT *sensor, json_object *queryJ) {
     if (err != sensor->format->nbreg)
       goto OnErrorExit;
   }
+
+  if (sensor->rtu->semaphore) sem_post (sensor->rtu->semaphore);
   return 0;
 
 OnErrorExit:
@@ -226,6 +237,8 @@ OnErrorExit:
       json_object_get_string(queryJ));
   if (err == -1)
     ModbusReconnect(sensor);
+
+  if (sensor->rtu->semaphore) sem_post (sensor->rtu->semaphore);
   return 1;
 }
 
@@ -245,6 +258,7 @@ static int ModBusWriteRegisters(ModbusSensorT *sensor, json_object *queryJ) {
   source.sensor = sensor->uid;
   source.api = sensor->api;
   source.context = sensor->context;
+  if (sensor->rtu->semaphore) sem_wait (sensor->rtu->semaphore);
 
   if (!format->encodeCB) {
     AFB_API_NOTICE(sensor->api, "ModBusFormatResponse: No encodeCB uid=%s",
@@ -282,6 +296,7 @@ static int ModBusWriteRegisters(ModbusSensorT *sensor, json_object *queryJ) {
     if (err != format->nbreg)
       goto OnErrorExit;
   }
+  if (sensor->rtu->semaphore) sem_post (sensor->rtu->semaphore);
   return 0;
 
 OnErrorExit:
@@ -292,6 +307,7 @@ OnErrorExit:
       json_object_get_string(queryJ));
   if (err == -1)
     ModbusReconnect(sensor);
+  if (sensor->rtu->semaphore) sem_post (sensor->rtu->semaphore);
   return 1;
 }
 
@@ -345,6 +361,7 @@ static void ModbusTimerCallback(afb_timer_t timer, void *userdata,
 
   // update sensor buffer with current value without building JSON
   err = (sensor->function->readCB)(sensor, NULL);
+
   if (err) {
     AFB_API_ERROR(sensor->api,
                   "ModbusTimerCallback: fail read sensor rtu=%s sensor=%s",
@@ -392,6 +409,7 @@ static int ModbusSensorEventCreate(ModbusSensorT *sensor,
 
   if (!sensor->function->readCB)
     goto OnErrorExit;
+
   err = (sensor->function->readCB)(sensor, responseJ);
   if (err) {
     AFB_API_ERROR(sensor->api,
@@ -466,13 +484,18 @@ void ModbusSensorRequest(afb_req_t request, ModbusSensorT *sensor,
   if (!strcasecmp(action, "WRITE")) {
     if (!sensor->function->writeCB)
       goto OnWriteError;
+
+    if (sensor->rtu->semaphore) sem_wait (sensor->rtu->semaphore);
     err = (sensor->function->writeCB)(sensor, dataJ);
+    if (sensor->rtu->semaphore) sem_post (sensor->rtu->semaphore);
+
     if (err)
       goto OnWriteError;
 
   } else if (!strcasecmp(action, "READ")) {
     if (!sensor->function->readCB)
       goto OnReadError;
+
     err = (sensor->function->readCB)(sensor, &responseJ);
     if (err)
       goto OnReadError;
@@ -530,16 +553,16 @@ OnErrorExit:
 }
 
 static int ModbusParseTTY(const char *uri, char **ttydev, int *baud) {
-#define TCP_PREFIX "tty://"
+#define TTY_PREFIX "tty://"
   char *devpath, *speed, *uri_tmp;
   int idx;
-  static int prefixlen = sizeof(TCP_PREFIX) - 1;
+  static int prefixlen = sizeof(TTY_PREFIX) - 1;
   char ip[100];
   struct hostent *he;
   struct in_addr **addrlist;
 
   // as today only TCP modbus is supported
-  if (strncasecmp(uri, TCP_PREFIX, prefixlen))
+  if (strncasecmp(uri, TTY_PREFIX, prefixlen))
     goto OnErrorExit;
   uri_tmp = strdup(uri);
   // break URI in substring ignoring leading tcp:
@@ -628,6 +651,15 @@ int ModbusRtuConnect(afb_api_t api, ModbusRtuT *rtu) {
       goto OnErrorExit;
     }
 
+    // serial link do not support simultaneous read
+    rtu->semaphore= malloc (sizeof(sem_t));
+    int err= sem_init(rtu->semaphore, 0, 1);
+    if (err < 0) {
+        AFB_API_ERROR(api, "ModbusRtuConnect: fail to init tty semaphore uid=%s uri=%s",
+                    rtu->uid, rtu->uri);
+        goto OnErrorExit;
+    }
+
   } else {
     char *addr;
     int port;
@@ -699,6 +731,7 @@ void ModbusRtuSensorsId(ModbusRtuT *rtu, int verbose, json_object *responseJ) {
       break;
     case 2:
       err += (sensor->function->readCB)(sensor, &dataJ);
+
       if (err)
         dataJ = NULL;
       err = rp_jsonc_pack(&elemJ, "{ss ss ss si si so}", "uid", sensor->uid,
@@ -710,6 +743,7 @@ void ModbusRtuSensorsId(ModbusRtuT *rtu, int verbose, json_object *responseJ) {
       // if not usage try to build one
       if (!sensor->usage) {
         actionsJ = json_object_new_array();
+
         if (sensor->function->writeCB) {
           json_object_array_add(actionsJ, json_object_new_string("write"));
         }

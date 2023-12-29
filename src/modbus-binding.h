@@ -25,6 +25,9 @@
 #ifndef _MODBUS_BINDING_INCLUDE_
 #define _MODBUS_BINDING_INCLUDE_
 
+// added semaphaore to prevent multiple read on the same RS485
+#include <semaphore.h>
+
 // usefull classical include
 #include <stdio.h>
 #include <string.h>
@@ -96,6 +99,8 @@ struct ModbusSourceS {
   const uint idlen;  // no default for slaveid len but use 1 when nothing given
   const uint autostart;  // 0=no 1=try 2=mandatory
   void *context;
+  sem_t *semaphore;
+
   ModbusSensorT *sensors;
 };
 
@@ -108,7 +113,11 @@ struct ModbusSensorS {
   const uint registry;
   uint count;
   uint hertz;
+<<<<<<< HEAD
   uint idle;
+=======
+  uint iddle;
+>>>>>>> a58426d (Added semaphore for tty)
   uint16_t *buffer;
   ModbusFormatCbT *format;
   ModbusFunctionCbT *function;
