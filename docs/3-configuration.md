@@ -2,7 +2,7 @@
 
 ## Modbus binding supports a set of default encoders for values store within multiple registries
 
-* int16, bool => 1 register 
+* int16, bool => 1 register
 * int32 => 2 registers
 * int64 => 4 registers
 * float, floatabcd, floatdabc, ...
@@ -21,11 +21,11 @@ Modbus binding creates one api/verb by sensor. By default each sensor api/verb i
     "uri" : "tcp://192.168.1.110:502",
     "privilege": "global RTU required privilege",
     "autostart" : 1,  // connect to RTU at binder start
-    "prefix": "myrtu",  // api verb prefix 
+    "prefix": "myrtu",  // api verb prefix
     "timeout": xxxx, // optional response timeout in ms
     "debug": 0-3, // option libmodbus debug level
-    "hertz": 10,  // default pooling for event subscription 
-    "iddle": 0,   // force event even when value does not change every hertz*iddle count
+    "hertz": 10,  // default pooling for event subscription
+    "idle": 0,   // force event even when value does not change every hertz*idle count
     "sensors": [
       {
         "uid": "PRODUCT_INFO",
@@ -41,8 +41,8 @@ Modbus binding creates one api/verb by sensor. By default each sensor api/verb i
         "format" : "BOOL",
         "register" : 1,
         "privilege": "optional sensor required privilege",
-        "herz": xxx, // special pooling rate for this sensor 
-        "iddle": xxx, // special iddle force event when value does not change 
+        "herz": xxx, // special pooling rate for this sensor
+        "idle": xxx, // special idle force event when value does not change
       },
       {
         "uid": "DIN01_counter",
@@ -50,9 +50,9 @@ Modbus binding creates one api/verb by sensor. By default each sensor api/verb i
         "format" : "UINT32",
         "register" : 6,
         "privilege": "optional sensor required privilege",
-        "herz": xxx // special pooling rate for this sensor 
+        "herz": xxx // special pooling rate for this sensor
       },
-...      
+...
 ```
 
 ## Modbus controller exposed
@@ -99,12 +99,12 @@ static ModbusFormatCbT pigeonEncoders[] = {
     {
       .uid="devinfo",
       .info="return KingPigeon Device Info as an array",
-      .nbreg=6, .decodeCB=decodePigeonInfo, 
+      .nbreg=6, .decodeCB=decodePigeonInfo,
       .encodeCB=encodePigeonInfo
     },{
       .uid="rcount",
-      .info="Return Relative Count from Uint32", 
-      .nbreg=2, .decodeCB=decodeRCount, .encodeCB=NULL, 
+      .info="Return Relative Count from Uint32",
+      .nbreg=2, .decodeCB=decodeRCount, .encodeCB=NULL,
       .initCB=initRCount
     },{.uid=NULL} // must be NULL terminated
 };

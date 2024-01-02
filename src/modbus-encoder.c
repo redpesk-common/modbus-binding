@@ -25,7 +25,6 @@
 
 #include <modbus.h>
 #include "modbus-binding.h"
-#include <ctl-config.h>
 
 typedef struct modbusRegistryS {
    char *uid;
@@ -53,7 +52,7 @@ void mbEncoderRegister (char *uid, ModbusFormatCbT *encoderCB) {
     } else {
         for (registryIdx= registryHead; registryIdx->next; registryIdx=registryIdx->next);
         registryIdx->next = registryEntry;
-    }   
+    }
 }
 
 // find on format encoder/decoder within one plugin
@@ -78,7 +77,7 @@ static void PluginParseURI (const char* uri, char **plugin, char **format) {
     if (strncasecmp(uri, PLUGIN_ACTION_PREFIX, prefixlen)) goto NoPluginExit;
 
     // break URI in substring ignoring leading tcp:
-    chaine= strdup(uri);   
+    chaine= strdup(uri);
     for (idx=prefixlen; idx < strlen(chaine); idx ++) {
         if (chaine[idx] == 0) break;
         if (chaine[idx] == '#') chaine[idx] = 0;
@@ -114,7 +113,7 @@ ModbusFormatCbT *mbEncoderFind (afb_api_t api, const char *uri) {
         if (!format || !format->uid) {
             AFB_API_ERROR(api, "mbEncoderFind: Fail find format='%s' within default core encoders", uri);
             goto OnErrorExit;
-        } 
+        }
 
     }  else {
         for (registryIdx= registryHead; registryIdx->next; registryIdx=registryIdx->next) {
@@ -129,7 +128,7 @@ ModbusFormatCbT *mbEncoderFind (afb_api_t api, const char *uri) {
         if (!format || !format->uid) {
             AFB_API_ERROR(api, "mbEncoderFind: Fail to find plugin='%s' format='%s' encoder", pluginuid, formatuid);
             goto OnErrorExit;
-        }  
+        }
     }
 
     return (format);
@@ -150,16 +149,16 @@ static int mbDecodeFloat64 (ModbusSourceT *source, ModbusFormatCbT *format, uint
     float value;
 
     switch (format->subtype) {
-        case MB_FLOAT_ABCD: 
+        case MB_FLOAT_ABCD:
             value= modbus_get_float_abcd (&data [index*format->nbreg]);
             break;
-        case MB_FLOAT_BADC: 
+        case MB_FLOAT_BADC:
             value= modbus_get_float_badc (&data [index*format->nbreg]);
             break;
-        case MB_FLOAT_DCBA: 
+        case MB_FLOAT_DCBA:
             value= modbus_get_float_dcba (&data [index*format->nbreg]);
             break;
-        case MB_FLOAT_CDAB: 
+        case MB_FLOAT_CDAB:
             value= modbus_get_float_cdab (&data [index*format->nbreg]);
             break;
         default:
@@ -180,16 +179,16 @@ static int mbEncodeFloat64(ModbusSourceT *source, ModbusFormatCbT *format, json_
     value= (float)json_object_get_double (sourceJ);
 
     switch (format->subtype) {
-        case MB_FLOAT_ABCD: 
+        case MB_FLOAT_ABCD:
             modbus_set_float_abcd (value, *&response[index*format->nbreg]);
             break;
-        case MB_FLOAT_BADC: 
+        case MB_FLOAT_BADC:
             modbus_set_float_badc (value, *&response[index*format->nbreg]);
             break;
-        case MB_FLOAT_DCBA: 
+        case MB_FLOAT_DCBA:
             modbus_set_float_dcba (value, *&response[index*format->nbreg]);
             break;
-        case MB_FLOAT_CDAB: 
+        case MB_FLOAT_CDAB:
             modbus_set_float_cdab (value, *&response[index*format->nbreg]);
             break;
         default:
@@ -210,7 +209,7 @@ static int mbDecodeInt64 (ModbusSourceT *source, ModbusFormatCbT *format, uint16
 }
 
 static int mbEncodeInt64(ModbusSourceT *source, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
-   
+
    if (!json_object_is_type (sourceJ, json_type_int)) goto OnErrorExit;
    uint64_t val= (int64_t)json_object_get_int (sourceJ);
    MODBUS_SET_INT64_TO_INT16 (*response, index*format->nbreg, val);
@@ -247,7 +246,7 @@ static int mbDecodeInt32 (ModbusSourceT *source, ModbusFormatCbT *format, uint16
 }
 
 static int mbEncodeInt32(ModbusSourceT *source, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
-   
+
    if (!json_object_is_type (sourceJ, json_type_int)) goto OnErrorExit;
    int32_t value= (int32_t)json_object_get_int (sourceJ);
    MODBUS_SET_INT32_TO_INT16 (*response, index*format->nbreg, value);
@@ -266,7 +265,7 @@ int mbDecodeInt16 (ModbusSourceT *source, ModbusFormatCbT *format, uint16_t *dat
 }
 
 static int mbEncodeInt16(ModbusSourceT *source, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
-   
+
    if (!json_object_is_type (sourceJ, json_type_int))  goto OnErrorExit;
    int16_t value = (int16_t)json_object_get_int (sourceJ);
 
@@ -285,7 +284,7 @@ int mbDecodeBoolean (ModbusSourceT *source, ModbusFormatCbT *format, uint16_t *d
 }
 
 static int mbEncodeBoolean(ModbusSourceT *source, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
-   
+
    if (!json_object_is_type (sourceJ, json_type_boolean))  goto OnErrorExit;
    int16_t value = (int16_t)json_object_get_boolean (sourceJ);
 
@@ -313,7 +312,7 @@ static ModbusFormatCbT coreEncodersCB[] = {
 
 // register callback and use it to register core encoders
 void mbRegisterCoreEncoders (void) {
-  
+
   // Builtin Encoder don't have UID
   mbEncoderRegister (NULL, coreEncodersCB);
 

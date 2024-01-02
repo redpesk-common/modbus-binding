@@ -1,67 +1,29 @@
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Kingpigeon - Info HTML5",
-      "type": "cppdbg",
-      "request": "launch",
-      "program": "/usr/bin/afb-binder",
-      "args": [
-        "--name=afb-modbus_kingpigeon",
-        "--port=1234",
-        "--ldpaths=.",
-        "--workdir=.",
-        "--verbose",
-        "--verbose",
-        "--verbose",
-        "--trap-faults=no"
-      ],
-      "stopAtEntry": false,
-      "cwd": "${workspaceFolder}/build/package",
-      "environment": [],
-      "externalConsole": false,
-      "MIMode": "gdb",
-      "setupCommands": [
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
         {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        }
-      ],
-      "miDebuggerPath": "/usr/bin/gdb"
-    },
-    {
-      "name": "Raymarine anemometer - gcc build and debug active file",
-      "type": "cppdbg",
-      "request": "launch",
-      "program": "afb-binder",
-      "args": [
-        "--name=afb-modbus_raymarine-anemometer",
-        "--port=1234",
-        "--ldpaths=.",
-        "--workdir=.",
-        "--token=",
-        "--verbose",
-        "--verbose",
-        "--verbose",
-        "--trap-faults=no"
-      ],
-      "stopAtEntry": false,
-      "cwd": "${workspaceFolder}/build/package",
-      "environment": [],
-      "externalConsole": false,
-      "MIMode": "gdb",
-      "setupCommands": [
-        {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        }
-      ],
-      "miDebuggerPath": "/usr/bin/gdb"
-    }
-  ]
+            "name": "Eastron",
+            "type": "lldb",
+            "request": "launch",
+            "program": "/usr/bin/afb-binder",
+            //"preLaunchTask": "binding-native-build",
+            "env": {
+                "LD_LIBRARY_PATH": "/usr/local/lib64"
+            },
+            "args": [
+                "-v",
+                "--monitoring",
+                "--trap-faults=0",
+                "--config=conf.d/project/etc/eastron-sdm72d.json",
+            ],
+            "cwd": "${workspaceFolder}",
+            "initCommands": [
+                "target stop-hook add -n _start -o continue",
+                "settings set target.disable-aslr false",
+            ]
+        },
+    ]
 }

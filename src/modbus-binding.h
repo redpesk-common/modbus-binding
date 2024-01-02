@@ -31,23 +31,32 @@
 #include <assert.h>
 #include <stdbool.h>
 
-#define  AFB_BINDING_VERSION 3
+#define  AFB_BINDING_VERSION 4
 #include <afb/afb-binding.h>
-#include <afb-timer.h>
-#include <wrap-json.h>
+#include <rp-utils/rp-jsonc.h>
+#include <afb-helpers4/ctl-lib.h>
+#include <afb-helpers4/afb-data-utils.h>
 
 
 #ifndef ERROR
   #define ERROR -1
 #endif
 
+#define PLUGIN_ACTION_PREFIX "plugin://"
+
+typedef struct  {
+  const char *key;
+  const char *uid;
+  const char *info;
+} StaticVerbsT;
+
 typedef enum {
   MB_TYPE_UNSET=0,      // Null is not a valid default
   MB_COIL_STATUS,       // Func Code Read=01 WriteSingle=05 WriteMultiple=15
   MB_COIL_INPUT,        // Func Code (read single only)=02
-  MB_REGISTER_INPUT,    // Func Code (read single only)=04 
+  MB_REGISTER_INPUT,    // Func Code (read single only)=04
   MB_REGISTER_HOLDING,  // Func Code Read=03 WriteSingle=06 WriteMultiple=16
-} ModbusTypeE;          
+} ModbusTypeE;
 
 // hack to get double link rtu<->sensor
 typedef struct ModbusSensorS ModbusSensorT;
@@ -80,7 +89,7 @@ struct ModbusSourceS {
   const char *uri;
   const char *adminapi;
   const int timeout;
-  const int iddle;
+  const int idle;
   const int slaveid;
   const int debug;
   uint hertz;  // default pooling frequency when subscribing to sensors
@@ -99,12 +108,12 @@ struct ModbusSensorS {
   const uint registry;
   uint count;
   uint hertz;
-  uint iddle;
-  uint16_t *buffer; 
+  uint idle;
+  uint16_t *buffer;
   ModbusFormatCbT *format;
   ModbusFunctionCbT *function;
   ModbusRtuT *rtu;
-  TimerHandleT *timer;
+  afb_timer_t timer;
   afb_api_t api;
   afb_event_t event;
   void *context;
@@ -120,12 +129,33 @@ struct ModbusFunctionCbS {
 } ;
 
 typedef struct {
-  uint16_t *buffer; 
+  uint16_t *buffer;
   uint count;
-  int iddle;
+  int idle;
   ModbusSensorT *sensor;
 } ModbusEvtT;
 
+
+typedef struct {
+	/** the API */
+	afb_api_t api;
+
+	/** meta data from controller */
+	ctl_metadata_t metadata;
+
+	/** on-start controller actions */
+	ctl_actionset_t onstart;
+
+	/** on-events controller actions */
+	ctl_actionset_t onevent;
+
+	/** extra verbs of controller actions */
+	ModbusRtuT *modbus;
+
+	/** holder for the configuration */
+	json_object *config;
+
+} CtlHandleT;
 
 // modbus-glue.c
 void ModbusSensorRequest (afb_req_t request, ModbusSensorT *sensor, json_object *queryJ);

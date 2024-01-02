@@ -48,7 +48,6 @@ set(PROJECT_CMAKE_CONF_DIR "conf.d")
 
 # Compilation Mode (DEBUG, RELEASE)
 # ----------------------------------
-set(BUILD_TYPE "DEBUG")
 
 # Kernel selection if needed. You can choose between a
 # mandatory version to impose a minimal version.
@@ -67,26 +66,20 @@ set(BUILD_TYPE "DEBUG")
 # Compiler selection if needed. Impose a minimal version.
 # -----------------------------------------------
 set (gcc_minimal_version 4.9)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # PKG_CONFIG required packages
 # -----------------------------
 set (PKG_REQUIRED_LIST
 	json-c
 	afb-binding
-	afb-libcontroller
+    librp-utils-static
+    afb-helpers4-static>=10.0.3
 	libmodbus
 )
 
 # WARNING: default distro modbus is not valid
 list(APPEND PKG_REQUIRED_LIST libmodbus>=3.1.6)
-
-# Print a helper message when every thing is finished
-# ----------------------------------------------------
-if(IS_DIRECTORY $ENV{HOME}/opt/afb-monitoring)
-set(MONITORING_ALIAS "--alias=/monitoring:$ENV{HOME}/opt/afb-monitoring")
-endif()
-set( CLOSING_MESSAGE "Debug: afb-binder --name=afb-modbus --port=1234 ${MONITORING_ALIAS} --workdir=$ENV{PWD}/package --ldpaths=. -vvv # http://localhost:1234/devtools/index.html")
-set(PACKAGE_MESSAGE "Install widget file using in the target : afm-util install ${PROJECT_NAME}.wgt")
 
 # Customize link option
 # -----------------------------

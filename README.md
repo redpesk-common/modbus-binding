@@ -14,6 +14,10 @@ This is the usage for the modbus-simulation binary:
     -a : TCP address of the emulated modbus device
     -p : TCP port of the emulated modbus device
     -h : Helper (print this)
-    
+
 example: modbus-simulation -a 127.0.0.1 -p 2000
 ```
+
+
+Fulup TDB
+ - virer la section metadata pour aligner uid,api,info avec les autres bindings

@@ -24,6 +24,7 @@
 #define _GNU_SOURCE
 
 #include "modbus-binding.h"
+#include <afb-req-utils.h>
 #include <arpa/inet.h>
 #include <errno.h>
 #include <modbus.h>
@@ -300,7 +301,7 @@ static ModbusFunctionCbT ModbusFunctionsCB[] = {
      .type = MB_COIL_INPUT,
      .info = "Boolean ReadOnly register",
      .readCB = ModBusReadBits,
-     .writeCB=NULL},
+     .writeCB = NULL},
     {.uid = "COIL_HOLDING",
      .type = MB_COIL_STATUS,
      .info = "Boolean ReadWrite register",
@@ -310,7 +311,7 @@ static ModbusFunctionCbT ModbusFunctionsCB[] = {
      .type = MB_REGISTER_INPUT,
      .info = "INT16 ReadOnly register",
      .readCB = ModBusReadRegisters,
-     .writeCB=NULL},
+     .writeCB = NULL},
     {.uid = "REGISTER_HOLDING",
      .type = MB_REGISTER_HOLDING,
      .info = "INT16 ReadWrite register",
@@ -334,11 +335,10 @@ ModbusFunctionCbT *mbFunctionFind(afb_api_t api, const char *uid) {
 }
 
 // Timer base sensor pooling tic send event if sensor value changed
-static int ModbusTimerCallback(TimerHandleT *timer) {
+static void ModbusTimerCallback(afb_timer_t timer, void *userdata,
+                               uint decount) {
 
-  assert(timer);
-
-  ModbusEvtT *context = (ModbusEvtT *)timer->context;
+  ModbusEvtT *context = (ModbusEvtT *)userdata;
   ModbusSensorT *sensor = context->sensor;
   json_object *responseJ;
   int err, count;
@@ -355,7 +355,7 @@ static int ModbusTimerCallback(TimerHandleT *timer) {
   // if buffer change then update JSON and send event
   if (memcmp(context->buffer, sensor->buffer,
              sizeof(uint16_t) * sensor->format->nbreg * sensor->count) ||
-      !--context->iddle) {
+      !--context->idle) {
 
     // if responseJ is provided build JSON response
     err = ModBusFormatResponse(sensor, &responseJ);
@@ -363,30 +363,31 @@ static int ModbusTimerCallback(TimerHandleT *timer) {
       goto OnErrorExit;
 
     // send event and it no more client remove event and timer
-    count = afb_event_push(sensor->event, responseJ);
+    afb_data_t data = afb_data_json_c_hold(responseJ);
+    count = afb_event_push(sensor->event, 1, &data);
     if (count == 0) {
       afb_event_unref(sensor->event);
       sensor->event = NULL;
+      afb_timer_unref(timer);
+      sensor->timer=NULL;
       free(context->buffer);
-      TimerEvtStop(timer);
     } else {
       // save current sensor buffer for next comparison
       memcpy(context->buffer, sensor->buffer,
              sizeof(uint16_t) * sensor->format->nbreg * sensor->count);
-      context->iddle = sensor->iddle; // reset iddle counter
+      context->idle = sensor->idle; // reset idle counter
     }
   }
-  return 1;
+  return;
 
 OnErrorExit:
-  return 1; // Returning 0 would stop the timer
+  return;
 }
 
 static int ModbusSensorEventCreate(ModbusSensorT *sensor,
                                    json_object **responseJ) {
   ModbusRtuT *rtu = sensor->rtu;
   int err;
-  char *timeruid;
   ModbusEvtT *mbEvtHandle;
 
   if (!sensor->function->readCB)
@@ -401,8 +402,8 @@ static int ModbusSensorEventCreate(ModbusSensorT *sensor,
 
   // if no even attach to sensor create one
   if (!sensor->event) {
-    sensor->event = afb_api_make_event(sensor->api, sensor->uid);
-    if (!sensor->event) {
+    err = afb_api_new_event(sensor->api, sensor->uid, &sensor->event);
+    if (err) {
       AFB_API_ERROR(
           sensor->api,
           "ModbusSensorEventCreate: fail to create event rtu=%s sensor=%s",
@@ -410,20 +411,24 @@ static int ModbusSensorEventCreate(ModbusSensorT *sensor,
       goto OnErrorExit;
     }
 
-    sensor->timer = (TimerHandleT *)calloc(1, sizeof(TimerHandleT));
-    sensor->timer->delay = (uint)1000 / rtu->hertz;
-    sensor->timer->count = -1; // run forever
-    err = asprintf(&timeruid, "%s/%s", rtu->uid, sensor->uid);
-    sensor->timer->uid = timeruid;
-
     mbEvtHandle = (ModbusEvtT *)calloc(1, sizeof(ModbusEvtT));
     mbEvtHandle->sensor = sensor;
-    mbEvtHandle->iddle = sensor->iddle;
+    mbEvtHandle->idle = sensor->idle;
     mbEvtHandle->buffer =
         (uint16_t *)calloc(sensor->format->nbreg * sensor->count,
                            sizeof(uint16_t)); // keep track of old value
+    err = afb_timer_create(&sensor->timer, 0, 0, 0,
+                           0, // run forever,
+                           (uint)1000 / rtu->hertz, 0, ModbusTimerCallback,
+                           mbEvtHandle, 1);
 
-    TimerEvtStart(sensor->api, sensor->timer, ModbusTimerCallback, mbEvtHandle);
+    if (err != 0) {
+      AFB_API_ERROR(
+          sensor->api,
+          "ModbusSensorTimerCreate: fail to create timer rtu=%s sensor=%s",
+          rtu->uid, sensor->uid);
+      goto OnErrorExit;
+    }
   }
   return 0;
 
@@ -449,7 +454,7 @@ void ModbusSensorRequest(afb_req_t request, ModbusSensorT *sensor,
   };
 
   err =
-      wrap_json_unpack(queryJ, "{ss s?o !}", "action", &action, "data", &dataJ);
+      rp_jsonc_unpack(queryJ, "{ss s?o !}", "action", &action, "data", &dataJ);
   if (err) {
     afb_req_fail_f(
         request, "query-error",
@@ -545,7 +550,7 @@ static int ModbusParseTTY(const char *uri, char **ttydev, int *baud) {
       uri_tmp[idx] = 0;
   }
 
-  devpath = &uri_tmp[prefixlen-1];
+  devpath = &uri_tmp[prefixlen - 1];
   speed = &uri_tmp[idx];
   sscanf(speed, "%d", baud);
 
@@ -605,9 +610,9 @@ int ModbusRtuConnect(afb_api_t api, ModbusRtuT *rtu) {
   modbus_t *ctx;
 
   if (!strncmp(rtu->uri, "tty:", 4)) {
-    char *ttydev=NULL;
-    int speed=19200;
-    if (ModbusParseTTY(rtu->uri, &ttydev, &speed)){
+    char *ttydev = NULL;
+    int speed = 19200;
+    if (ModbusParseTTY(rtu->uri, &ttydev, &speed)) {
       AFB_API_ERROR(api, "ModbusRtuConnect: fail to parse uid=%s uri=%s",
                     rtu->uid, rtu->uri);
       goto OnErrorExit;
@@ -616,7 +621,8 @@ int ModbusRtuConnect(afb_api_t api, ModbusRtuT *rtu) {
     ctx = modbus_new_rtu(ttydev, speed, 'N', 8, 1);
     if (modbus_connect(ctx) == -1) {
       AFB_API_ERROR(
-          api, "ModbusRtuConnect: fail to connect tty uid=%s ttydev=%s speed=%d",
+          api,
+          "ModbusRtuConnect: fail to connect tty uid=%s ttydev=%s speed=%d",
           rtu->uid, ttydev, speed);
       modbus_free(ctx);
       goto OnErrorExit;
@@ -686,20 +692,19 @@ void ModbusRtuSensorsId(ModbusRtuT *rtu, int verbose, json_object *responseJ) {
     switch (verbose) {
     default:
     case 1:
-      err += wrap_json_pack(&elemJ, "{ss ss ss si si}", "uid", sensor->uid,
-                            "type", sensor->function->uid, "format",
-                            sensor->format->uid, "count", sensor->count,
-                            "nbreg", sensor->format->nbreg * sensor->count);
+      err += rp_jsonc_pack(&elemJ, "{ss ss ss si si}", "uid", sensor->uid,
+                           "type", sensor->function->uid, "format",
+                           sensor->format->uid, "count", sensor->count, "nbreg",
+                           sensor->format->nbreg * sensor->count);
       break;
     case 2:
       err += (sensor->function->readCB)(sensor, &dataJ);
       if (err)
         dataJ = NULL;
-      err =
-          wrap_json_pack(&elemJ, "{ss ss ss si si so}", "uid", sensor->uid,
-                         "type", sensor->function->uid, "format",
-                         sensor->format->uid, "count", sensor->count, "nbreg",
-                         sensor->format->nbreg * sensor->count, "data", dataJ);
+      err = rp_jsonc_pack(&elemJ, "{ss ss ss si si so}", "uid", sensor->uid,
+                          "type", sensor->function->uid, "format",
+                          sensor->format->uid, "count", sensor->count, "nbreg",
+                          sensor->format->nbreg * sensor->count, "data", dataJ);
       break;
     case 3:
       // if not usage try to build one
@@ -714,8 +719,8 @@ void ModbusRtuSensorsId(ModbusRtuT *rtu, int verbose, json_object *responseJ) {
           json_object_array_add(actionsJ,
                                 json_object_new_string("unsubscribe"));
         }
-        wrap_json_pack(&sensor->usage, "{so ss*}", "action", actionsJ, "data",
-                       sensor->format->info);
+        rp_jsonc_pack(&sensor->usage, "{so ss*}", "action", actionsJ, "data",
+                      sensor->format->info);
       }
 
       // make sure it does not get deleted config json object after 1st usage
@@ -723,7 +728,7 @@ void ModbusRtuSensorsId(ModbusRtuT *rtu, int verbose, json_object *responseJ) {
         json_object_get(sensor->sample);
       json_object_get(sensor->usage);
 
-      err += wrap_json_pack(
+      err += rp_jsonc_pack(
           &elemJ, "{ss ss ss* ss* ss* so* so* si*}", "uid", sensor->uid, "verb",
           sensor->apiverb, "info", sensor->info, "type", sensor->function->info,
           "format", sensor->format->uid, "usage", sensor->usage, "sample",
@@ -770,8 +775,8 @@ void ModbusRtuRequest(afb_req_t request, ModbusRtuT *rtu, json_object *queryJ) {
   json_object *responseJ = NULL;
   int err;
 
-  err = wrap_json_unpack(queryJ, "{ss s?s s?i !}", "action", &action, "verbose",
-                         &verbose, "uri", &uri);
+  err = rp_jsonc_unpack(queryJ, "{ss s?s s?i !}", "action", &action, "verbose",
+                        &verbose, "uri", &uri);
   if (err) {
     afb_req_fail_f(request, "ModbusRtuAdmin", "invalid query rtu=%s query=%s",
                    rtu->uid, json_object_get_string(queryJ));
@@ -795,7 +800,7 @@ void ModbusRtuRequest(afb_req_t request, ModbusRtuT *rtu, json_object *queryJ) {
     }
 
     rtu->uri = uri;
-    err = ModbusRtuConnect(request->api, rtu);
+    err = ModbusRtuConnect(afb_req_get_api(request), rtu);
     if (err) {
       afb_req_fail_f(request, "ModbusRtuAdmin", "fail to parse uri=%s query=%s",
                      uri, json_object_get_string(queryJ));
@@ -813,7 +818,8 @@ void ModbusRtuRequest(afb_req_t request, ModbusRtuT *rtu, json_object *queryJ) {
     ModbusRtuSensorsId(rtu, verbose, responseJ);
   }
 
-  afb_req_success(request, responseJ, NULL);
+  afb_data_t repldata = afb_data_json_c_hold(responseJ);
+  afb_req_reply(request, 0, 1, &repldata);
   return;
 
 OnErrorExit:

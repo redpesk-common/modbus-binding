@@ -51,7 +51,7 @@
           "type": "Register_Holding",
           "format" : "plugin://raymarine-anemometer#windSpeed",
           "register" : 4,
-          "iddle" : 10
+          "idle" : 10
           }
        ]
       }

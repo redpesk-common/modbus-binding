@@ -34,7 +34,7 @@ modbus RTU0/D01_SWITCH {"action":"read"}
 
 ## Adding your own config
 
-Json config file is selected from *afb-binder --name=afb-midlename-xxx* option. This allows you to switch from one json config to the other without editing any file. *'middlename'* is used to select a specific config. For example *--name='afb-myrtu@lorient-modbus'* will select *modbus-myrtu@lorient-config.json*.
+Json config file is selected from *afb-binder --name=afb-midlename-xxx* option. This allows you to switch from one json config to the other without editing any file. *'midlename'* is used to select a specific config. For example *--name='afb-myrtu@lorient-modbus'* will select *modbus-myrtu@lorient-config.json*.
 
 You may also choose to force your config file by exporting CONTROL_CONFIG_PATH environnement variable. For further information, check binding controller documentation [here]({% chapter_link libappcontroller-guides.controller-configuration %})
 

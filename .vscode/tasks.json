@@ -1,0 +1,16 @@
+{
+    "tasks": [
+        {
+            "type": "cmake",
+            "label": "binding-native-build",
+            "command": "build",
+            //"cmake.buildDirectory": "$workspace/build",
+            "targets": [
+                "all"
+            ],
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "CMake template build task"
+        }
+    ]
+}

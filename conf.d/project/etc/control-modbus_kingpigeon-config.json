@@ -15,7 +15,7 @@
           "kingpigeon.ctlso"
         ]
       }
-    ], 
+    ],
     "modbus": [
       {
         "uid": "King-Pigeon-RTU0",
@@ -67,7 +67,7 @@
             "type": "Register_Holding",
             "info": "Rotation counter",
             "format" : "INT32",
-            "iddle" : 25,
+            "idle" : 25,
             "register" : 3,
             "sample": [
               {"action":"write", "data":0},
