@@ -167,10 +167,9 @@ set(WIDGET_ENTRY_POINT lib/afb-modbus.so)
 #set(AFB_TOKEN   ""      CACHE PATH "Default AFB_TOKEN")
 #set(AFB_REMPORT "1234" CACHE PATH "Default AFB_TOKEN")
 
-# Optional schema validator about now only XML, LUA and JSON
+# Optional schema validator about now only XML,JSON
 # are supported
 #------------------------------------------------------------
-#set(LUA_CHECKER "luac" CACHE STRING "LUA compiler")
 #set(XML_CHECKER "xmllint" CACHE STRING "XML linter")
 #set(JSON_CHECKER "json_verify" CACHE STRING "JSON linter")
 

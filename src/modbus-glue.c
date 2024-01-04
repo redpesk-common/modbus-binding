@@ -523,8 +523,8 @@ void ModbusSensorRequest(afb_req_t request, ModbusSensorT *sensor,
     goto OnErrorExit;
   }
 
-  // everything looks good let's response
-  afb_req_success(request, responseJ, NULL);
+  afb_data_t repldata = afb_data_json_c_hold(responseJ);
+  afb_req_reply(request, 0, 1, &repldata);
   return;
 
 OnWriteError:

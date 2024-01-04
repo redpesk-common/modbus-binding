@@ -113,11 +113,7 @@ struct ModbusSensorS {
   const uint registry;
   uint count;
   uint hertz;
-<<<<<<< HEAD
   uint idle;
-=======
-  uint iddle;
->>>>>>> a58426d (Added semaphore for tty)
   uint16_t *buffer;
   ModbusFormatCbT *format;
   ModbusFunctionCbT *function;
