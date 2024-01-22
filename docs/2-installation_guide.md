@@ -1,8 +1,8 @@
 # Installation
 
-## Install from RPM/APT
+## Installing from your distribution repositories
 
-* Declare redpesk repository: [(see doc)]({% chapter_link host-configuration-doc.setup-your-build-host %})
+* Declare redpesk repository [(see doc)]({% chapter_link host-configuration-doc.setup-your-build-host %}):
 
 * redpesk: `sudo dnf install modbus-binding afb-ui-devtools`
 * Fedora: `sudo dnf install modbus-binding afb-ui-devtools`
@@ -11,9 +11,9 @@
 
 ## Rebuilding from source
 
-### Modbus binding Dependencies
+### Modbus binding dependencies
 
-* Declare redpesk repository: [(see doc)]({% chapter_link host-configuration-doc.setup-your-build-host %})
+* Declare redpesk repository [(see doc)]({% chapter_link host-configuration-doc.setup-your-build-host %}):
 
 * From redpesk repos
   * application framework 'afb-binder' & 'afb-binding-devel'
@@ -21,13 +21,14 @@
   * binding helpers 'afb-libhelpers-devel'
   * cmake template 'afb-cmake-modules'
   * ui-devel html5 'afb-ui-devtools'
+
 * From your preferred Linux distribution repos
   * Libmodbus 3.1.6
   * Lua
 
-#### Install LibModbus
+#### Install LibModbus manually
 
-WARNING: Fedora-33 and many distros ship the old 3.0. This bind uses the 3.1 !!!
+WARNING: Fedora 33 and many distros ship the old 3.0. This binding uses the 3.1 !!!
 
 ```bash
 # download from https://libmodbus.org/download/
@@ -37,7 +38,8 @@ tar -xzf libmodbus-3.1.6.tar.gz && cd libmodbus-3.1.6/
 make && sudo make install-strip
 ```
 
-Update conf.d/00-????-config.cmake with chosen installation directory. ex: set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:/opt/libmodbus-3.1.6/lib64 pkgconfig")
+Update `conf.d/cmake/00-????-config.cmake` with chosen installation
+directory, ex: `set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:/opt/libmodbus-3.1.6/lib64 pkgconfig")`
 
 ### Modbus Binding build
 

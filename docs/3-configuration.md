@@ -7,11 +7,22 @@
 * int64 => 4 registers
 * float, floatabcd, floatdabc, ...
 
-Nevertheless user may also add its own encoding/decoding format to handle device specific representation (ex: device info string),or custom application encoding (ex: float to uint16 for an analog output). Custom encoder/decoder are stored within user plugin (see sample at src/plugins/kingpigeon).
+Nevertheless the user may also add its own encoding/decoding format to
+handle device specific representation (ex: device info string), or
+custom application encoding (ex: float to uint16 for an analog output).
+Custom encoders/decoders are stored within user plugins (see sample at
+`src/plugins/kingpigeon`).
 
 ## API usage
 
-Modbus binding creates one api/verb by sensor. By default each sensor api/verb is prefixed by the RTU uid. With following config mak
+Modbus binding creates one verb per sensor. By default each sensor verb
+is prefixed by the RTU uid.
+
+`conf.d/project/etc` contains multiple working examples.
+`eastron-sdm72d.json` uses serial Modbus, the others use Ethernet
+Modbus.
+
+### Sample TCP modbus-binding config
 
 ```json
 "modbus": [
@@ -20,12 +31,12 @@ Modbus binding creates one api/verb by sensor. By default each sensor api/verb i
     "info": "King Pigeon TCP I/O Module",
     "uri" : "tcp://192.168.1.110:502",
     "privilege": "global RTU required privilege",
-    "autostart" : 1,  // connect to RTU at binder start
-    "prefix": "myrtu",  // api verb prefix
+    "autostart" : 1, // connect to RTU at binder start
+    "prefix": "myrtu", // api verb prefix
     "timeout": xxxx, // optional response timeout in ms
     "debug": 0-3, // option libmodbus debug level
-    "hertz": 10,  // default pooling for event subscription
-    "idle": 0,   // force event even when value does not change every hertz*idle count
+    "hertz": 10, // default pooling for event subscription
+    "idle": 0, // force event even when value does not change every hertz*idle count
     "sensors": [
       {
         "uid": "PRODUCT_INFO",
@@ -41,7 +52,7 @@ Modbus binding creates one api/verb by sensor. By default each sensor api/verb i
         "format" : "BOOL",
         "register" : 1,
         "privilege": "optional sensor required privilege",
-        "herz": xxx, // special pooling rate for this sensor
+        "hertz": xxx, // special pooling rate for this sensor
         "idle": xxx, // special idle force event when value does not change
       },
       {
@@ -50,62 +61,125 @@ Modbus binding creates one api/verb by sensor. By default each sensor api/verb i
         "format" : "UINT32",
         "register" : 6,
         "privilege": "optional sensor required privilege",
-        "herz": xxx // special pooling rate for this sensor
+        "hertz": xxx // special pooling rate for this sensor
+      },
+...
+```
+
+### Sample serial modbus-binding config
+
+```json
+"modbus": {
+  "uid": "Eastron-SDM72D",
+  "info": "Three Phase Four Wire Energy Meter ",
+  "uri": "tty://dev/ttyUSB_RS485:19200",
+  "prefix": "SDM72D",
+  "slaveid": 1,
+  "timeout": 250,
+  "autostart": 1,
+  "privilege": "Eastron:Modbus",
+  "hertz": 10,
+  "sensors": [
+      {
+          "uid": "Volts-L1",
+          "register": 0,
+          "type": "Register_input",
+          "format": "FLOAT_DCBA",
+          "sample": [
+              {
+                  "action": "read"
+              },
+              {
+                  "action": "subscribe"
+              }
+          ]
+      },
+      {
+          "uid": "Volts-L2",
+          "register": 2,
+          "type": "Register_input",
+          "format": "FLOAT_DCBA"
       },
 ...
 ```
 
 ## Modbus controller exposed
 
-### Two builtin api/verb
+### Two builtin verb
 
-* api://modbus/ping // check if binder is alive
-* api://modbus/info // return registered MTU
+* `modbus ping`: check if binder is alive
+* `modbus info`: return registered MTU
 
-### One introspection api/verb per declared RTU
+### One introspection verb per declared RTU
 
-* api://modbus/myrtu/info
+* `modbus myrtu/info`
 
-### On action api/verb per declared Sensor
+### One action verb per declared Sensor
 
-* api://modbus/myrtu/din01_switch
-* api://modbus/myrtu/din01_counter
-* etc ...
+* `modbus myrtu/din01_switch`
+* `modbus myrtu/din01_counter`
+* etc…
 
-### For each sensor the API accepts 3 actions
+### For each sensor the API accepts 4 actions
 
-* action=read (return register(s) value after format decoding)
-* action=write (push value on register(s) after format encoding)
-* action=subscribe (subscribe to sensors value changes, frequency is defined by sensor or globally at RTU level)
+* read (return register(s) value after format decoding)
+* write (push value on register(s) after format encoding)
+* subscribe (subscribe to sensors value changes, frequency is defined by
+  sensor or globally at RTU level)
+* unsubscribe (unsubscribe to sensors value changes)
 
-### Format Converter
+Example: `modbus myrtu/din01_counter {"action": "read"}`
 
-The Modbus binding supports both builtin format converter and optional custom converter provided by user through plugins.
+### Format converter
 
-* Standard converter include the traditional INT16, UINT16, INT32, UINT32, FLOATABCD, ... Depending on the format one or more register is read
+The Modbus binding supports both builtin format converters and optional
+custom converters provided by user through plugins.
 
-* Custom converter are provided through optional plugins. Custom converter should declare a static structure and register it at plugin loadtime(CTLP_ONLOAD).
+* Standard converters include the traditional INT16, UINT16, INT32,
+  UINT32, FLOATABCD… Depending on the format one or more register is
+  read
+
+* Custom converters are provided through plugins. Custom converters
+  should declare a static structure and register it at plugin load time
+  (`CTLP_ONLOAD`).
 
   * uid is the formatter name as declared inside JSON config file.
-  * decode/encore callback are respectively called for read/write action
-  * init callback is called at format registration time and might be used to process a special value for a given sensor (e.g; deviation for a wind sensor). Each sensor attaches a void* context. Developer may declare a private context for each sensor (e.g. to store a previous value, a min/max, ...). The init callback receive sensor source to store context and optionally the ARGS json object when present within sensor json config.
+  * decode/encode callbacks are respectively called for read/write actions.
+  * init callback is called at format registration time and might be
+    used to process a special value for a given sensor (e.g. deviation
+    for a wind sensor). Each sensor attaches a `void*` context. The
+    developer may declare a private context for each sensor (e.g. to
+    store a previous value, a min/max…). The init callback receives the
+    sensor source to store context and optionally the `args` JSON object
+    when present within the sensor's JSON config.
 
-* WARNING: do not confuse format count and nbreg. NBreg is the number of 16bits registers use for a given formatter (e.g. 4 for a 64bits float). Count is the number of value you want to read in one operation (e.g. you may want to read all your digital input in one operation and receive them as an array of boolean)
+**WARNING:** do not confuse format count and `nbreg`. `nbreg` is the
+number of 16 bits registers used for a given formatter (e.g. 4 for a
+64 bits float). Count is the number of values you want to read in one
+operation (e.g. you may want to read all of your digital inputs in one
+operation and receive them as an array of booleans).
 
 ```c
-// Sample of custom formatter (king-pigeon-encore.c)
-// -------------------------------------------------
+// Custom formatter sample (kingpigeon-encoder.c)
+// ----------------------------------------------
 static ModbusFormatCbT pigeonEncoders[] = {
     {
-      .uid="devinfo",
-      .info="return KingPigeon Device Info as an array",
-      .nbreg=6, .decodeCB=decodePigeonInfo,
-      .encodeCB=encodePigeonInfo
-    },{
-      .uid="rcount",
-      .info="Return Relative Count from Uint32",
-      .nbreg=2, .decodeCB=decodeRCount, .encodeCB=NULL,
-      .initCB=initRCount
-    },{.uid=NULL} // must be NULL terminated
+      .uid = "devinfo",
+      .info = "return KingPigeon Device Info as an array",
+      .nbreg = 6,
+      .decodeCB = decodePigeonInfo,
+      .encodeCB = encodePigeonInfo
+    },
+    {
+      .uid = "rcount",
+      .info = "Return Relative Count from Uint32",
+      .nbreg = 2,
+      .decodeCB = decodeRCount,
+      .encodeCB = NULL,
+      .initCB = initRCount
+    },
+    {
+      .uid = NULL // must be NULL terminated
+    }
 };
 ```
