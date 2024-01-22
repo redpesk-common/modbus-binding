@@ -12,7 +12,7 @@
                 "uid": "modbus",
                 "version": "1.0",
                 "api": "modbus",
-                "info": "Generic Eastron default Test Config",
+                "info": "Generic Eastron default Test Config"
             },
             "modbus": {
                 "uid": "Eastron-SDM72D",

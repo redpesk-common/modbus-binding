@@ -73,7 +73,6 @@ static void PluginParseURI (const char* uri, char **plugin, char **format) {
     int idx;
     static int prefixlen = sizeof(PLUGIN_ACTION_PREFIX)-1;
 
-    // as today only TCP modbus is supported
     if (strncasecmp(uri, PLUGIN_ACTION_PREFIX, prefixlen)) goto NoPluginExit;
 
     // break URI in substring ignoring leading tcp:

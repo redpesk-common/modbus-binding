@@ -557,11 +557,7 @@ static int ModbusParseTTY(const char *uri, char **ttydev, int *baud) {
   char *devpath, *speed, *uri_tmp;
   int idx;
   static int prefixlen = sizeof(TTY_PREFIX) - 1;
-  char ip[100];
-  struct hostent *he;
-  struct in_addr **addrlist;
 
-  // as today only TCP modbus is supported
   if (strncasecmp(uri, TTY_PREFIX, prefixlen))
     goto OnErrorExit;
   uri_tmp = strdup(uri);
@@ -594,7 +590,6 @@ static int ModbusParseURI(const char *uri, char **addr, int *port) {
   struct hostent *he;
   struct in_addr **addrlist;
 
-  // as today only TCP modbus is supported
   if (strncasecmp(uri, TCP_PREFIX, prefixlen))
     goto OnErrorExit;
   uri_tmp = strdup(uri);
