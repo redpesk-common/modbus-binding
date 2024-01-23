@@ -9,12 +9,12 @@
 #define _GNU_SOURCE
 
 #include "modbus-binding.h"
-#include <ctl-plugin.h>
+#include <ctl-lib-plugin.h>
 #include <time.h>
 
 #include <math.h>
 
-CTLP_CAPI_REGISTER("raymarine-anemometer");
+CTL_PLUGIN_DECLARE("raymarine-anemometer", "MODBUS plugin for raymarine anemometer");
 
 struct windDirectionS {
     int offset_angle_deg;
@@ -143,15 +143,8 @@ OnErrorExit:
     return 1;
 }
 // encode/decode callbacks
-static ModbusFormatCbT cesEncoders[] = {
+ModbusFormatCbT modbusEncoders[] = {
     {.uid="windDirection", .info="json_integer(speed)", .nbreg=2, .decodeCB=decodeWindDirection, .encodeCB=encodeWindDirection, .initCB=initWindDirection},
     {.uid="windSpeed", .info="json_integer(angle)", .nbreg=1, .decodeCB=decodeWindSpeed, .encodeCB=encodeWindSpeed, .initCB=initWindSpeed},
     {.uid=NULL} // must be NULL terminated
 };
-
-CTLP_ONLOAD(plugin, registryCB) {
-    registerCbT callback = (registerCbT)registryCB;
-    assert (callback);
-    (*callback) (plugin->uid, cesEncoders);
-    return 0;
-}

@@ -174,6 +174,6 @@ void ModbusRtuSensorsId (ModbusRtuT *rtu, int verbose, json_object *responseJ);
 ModbusFormatCbT *mbEncoderFind (afb_api_t api, const char *uri) ;
 void mbEncoderRegister (const char *uid, ModbusFormatCbT *encoderCB);
 void mbRegisterCoreEncoders (void);
-typedef void (*registerCbT) (const char *uid, ModbusFormatCbT *encoderCB);
+
 
 #endif /* _MODBUS_BINDING_INCLUDE_ */

@@ -481,6 +481,14 @@ OnErrorExit:
   return -1;
 }
 
+static int initialize_codecs_of_plugins(void *closure, const plugin_t *plugin)
+{
+	ModbusFormatCbT *codecs = plugin_get_object(plugin, "modbusEncoders");
+	if (codecs != NULL)
+		mbEncoderRegister(plugin_name(plugin), codecs);
+	return 0;
+}
+
 /* create one API per config file object */
 static CtlHandleT *ReadConfig(afb_api_t rootapi, json_object *configJ) {
   afb_api_t api;
@@ -501,7 +509,10 @@ static CtlHandleT *ReadConfig(afb_api_t rootapi, json_object *configJ) {
     if (ctl_subread_metadata(&controller->metadata, configJ, true) < 0)
       goto OnErrorExit;
 
-    if (ctl_subread_plugins(&plugins, configJ, NULL, "plugins") > 0)
+    if (ctl_subread_plugins(&plugins, configJ, NULL, "plugins") < 0)
+      goto OnErrorExit;
+
+    if (plugin_store_iter(plugins, initialize_codecs_of_plugins, NULL) < 0)
       goto OnErrorExit;
 
     if (ctl_subread_actionset(&controller->onstart, configJ, "onstart") < 0)

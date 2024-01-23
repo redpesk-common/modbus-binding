@@ -10,9 +10,9 @@
 #define _GNU_SOURCE
 
 #include "modbus-binding.h"
-#include <ctl-plugin.h>
+#include <ctl-lib-plugin.h>
 
-CTLP_CAPI_REGISTER("king_pigeon");
+CTL_PLUGIN_DECLARE("king_pigeon", "MODBUS plugin for king pigeon");
 
 typedef struct {
     uint32_t previous;
@@ -93,15 +93,8 @@ static int initRCount (ModbusSourceT *source, json_object *argsJ) {
 }
 
 // encode/decode callbacks
-static ModbusFormatCbT pigeonEncoders[] = {
+ModbusFormatCbT modbusEncoders[] = {
     {.uid="devinfo", .info="json_array", .nbreg=6, .decodeCB=decodePigeonInfo, .encodeCB=encodePigeonInfo},
     {.uid="rcount", .info="json_integer", .nbreg=2, .decodeCB=decodeRCount, .encodeCB=NULL, .initCB=initRCount},
     {.uid=NULL} // must be NULL terminated
 };
-
-CTLP_ONLOAD(plugin, registryCB) {
-    registerCbT callback = (registerCbT)registryCB;
-    assert (callback);
-    (*callback) (plugin->uid, pigeonEncoders);
-    return 0;
-}
