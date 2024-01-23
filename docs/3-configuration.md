@@ -140,8 +140,9 @@ custom converters provided by user through plugins.
   read
 
 * Custom converters are provided through plugins. Custom converters
-  should declare a static structure and register it at plugin load time
-  (`CTLP_ONLOAD`).
+  should export an array of structures named `modbusFormats`, which
+  describes the provided formats, and which is terminated with a `NULL`
+  named format.
 
   * uid is the formatter name as declared inside JSON config file.
   * decode/encode callbacks are respectively called for read/write actions.
@@ -160,26 +161,27 @@ operation (e.g. you may want to read all of your digital inputs in one
 operation and receive them as an array of booleans).
 
 ```c
-// Custom formatter sample (kingpigeon-encoder.c)
-// ----------------------------------------------
-static ModbusFormatCbT pigeonEncoders[] = {
-    {
-      .uid = "devinfo",
-      .info = "return KingPigeon Device Info as an array",
-      .nbreg = 6,
-      .decodeCB = decodePigeonInfo,
-      .encodeCB = encodePigeonInfo
-    },
-    {
-      .uid = "rcount",
-      .info = "Return Relative Count from Uint32",
-      .nbreg = 2,
-      .decodeCB = decodeRCount,
-      .encodeCB = NULL,
-      .initCB = initRCount
-    },
-    {
-      .uid = NULL // must be NULL terminated
-    }
+// Custom formatter sample (src/plugins/kingpigeon/kingpigeon-encoder.c)
+// ---------------------------------------------------------------------
+...
+#include "modbus-binding.h"
+#include <ctl-lib-plugin.h>
+
+CTL_PLUGIN_DECLARE("king_pigeon", "MODBUS plugin for king pigeon");
+...
+static int decodePigeonInfo(ModbusSourceT *source, ModbusFormatCbT *format, uint16_t *data, uint index, json_object **responseJ) {
+...
+static int encodePigeonInfo(ModbusSourceT *source, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
+...
+ModbusFormatCbT modbusFormats[] = {
+  {
+    .uid = "devinfo",
+    .info = "return KingPigeon Device Info as an array",
+    .nbreg = 6,
+    .decodeCB = decodePigeonInfo,
+    .encodeCB = encodePigeonInfo
+  },
+...
+  { .uid = NULL } // must be NULL terminated
 };
 ```

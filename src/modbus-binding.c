@@ -483,7 +483,7 @@ OnErrorExit:
 
 static int initialize_codecs_of_plugins(void *closure, const plugin_t *plugin)
 {
-	ModbusFormatCbT *codecs = plugin_get_object(plugin, "modbusEncoders");
+	ModbusFormatCbT *codecs = plugin_get_object(plugin, "modbusFormats");
 	if (codecs != NULL)
 		mbEncoderRegister(plugin_name(plugin), codecs);
 	return 0;

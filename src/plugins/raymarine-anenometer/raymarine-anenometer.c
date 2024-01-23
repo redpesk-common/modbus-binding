@@ -143,7 +143,7 @@ OnErrorExit:
     return 1;
 }
 // encode/decode callbacks
-ModbusFormatCbT modbusEncoders[] = {
+ModbusFormatCbT modbusFormats[] = {
     {.uid="windDirection", .info="json_integer(speed)", .nbreg=2, .decodeCB=decodeWindDirection, .encodeCB=encodeWindDirection, .initCB=initWindDirection},
     {.uid="windSpeed", .info="json_integer(angle)", .nbreg=1, .decodeCB=decodeWindSpeed, .encodeCB=encodeWindSpeed, .initCB=initWindSpeed},
     {.uid=NULL} // must be NULL terminated

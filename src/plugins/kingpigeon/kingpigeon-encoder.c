@@ -93,7 +93,7 @@ static int initRCount (ModbusSourceT *source, json_object *argsJ) {
 }
 
 // encode/decode callbacks
-ModbusFormatCbT modbusEncoders[] = {
+ModbusFormatCbT modbusFormats[] = {
     {.uid="devinfo", .info="json_array", .nbreg=6, .decodeCB=decodePigeonInfo, .encodeCB=encodePigeonInfo},
     {.uid="rcount", .info="json_integer", .nbreg=2, .decodeCB=decodeRCount, .encodeCB=NULL, .initCB=initRCount},
     {.uid=NULL} // must be NULL terminated
