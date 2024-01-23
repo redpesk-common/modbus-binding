@@ -464,9 +464,8 @@ void ModbusSensorRequest(afb_req_t request, ModbusSensorT *sensor,
   int err;
 
   if (!rtu->context) {
-    afb_req_fail_f(
-        request, "not-connected",
-        "ModbusSensorRequest: RTU not connected rtu=%s sensor=%s query=%s",
+    afb_req_reply_string_f(request, AFB_ERRNO_INTERNAL_ERROR,
+        "not-connected, ModbusSensorRequest: RTU not connected rtu=%s sensor=%s query=%s",
         rtu->uid, sensor->uid, json_object_get_string(queryJ));
     goto OnErrorExit;
   };
@@ -474,9 +473,8 @@ void ModbusSensorRequest(afb_req_t request, ModbusSensorT *sensor,
   err =
       rp_jsonc_unpack(queryJ, "{ss s?o !}", "action", &action, "data", &dataJ);
   if (err) {
-    afb_req_fail_f(
-        request, "query-error",
-        "ModbusSensorRequest: invalid 'json' rtu=%s sensor=%s query=%s",
+    afb_req_reply_string_f(request, AFB_ERRNO_INTERNAL_ERROR,
+        "querry-error, ModbusSensorRequest: invalid 'json' rtu=%s sensor=%s query=%s",
         rtu->uid, sensor->uid, json_object_get_string(queryJ));
     goto OnErrorExit;
   }
@@ -516,9 +514,8 @@ void ModbusSensorRequest(afb_req_t request, ModbusSensorT *sensor,
         goto OnSubscribeError;
     }
   } else {
-    afb_req_fail_f(
-        request, "syntax-error",
-        "ModbusSensorRequest: action='%s' UNKNOWN rtu=%s sensor=%s query=%s",
+    afb_req_reply_string_f(request, AFB_ERRNO_INTERNAL_ERROR,
+        "syntax-error, ModbusSensorRequest: action='%s' UNKNOWN rtu=%s sensor=%s query=%s",
         action, rtu->uid, sensor->uid, json_object_get_string(queryJ));
     goto OnErrorExit;
   }
@@ -528,23 +525,20 @@ void ModbusSensorRequest(afb_req_t request, ModbusSensorT *sensor,
   return;
 
 OnWriteError:
-  afb_req_fail_f(
-      request, "write-error",
-      "ModbusSensorRequest: fail to write data=%s rtu=%s sensor=%s error=%s",
-      json_object_get_string(dataJ), rtu->uid, sensor->uid,
-      modbus_strerror(errno));
+  afb_req_reply_string_f(request, AFB_ERRNO_INTERNAL_ERROR,
+      "write-error, ModbusSensorRequest: fail to write data=%s rtu=%s sensor=%s error=%s",
+      json_object_get_string(dataJ), rtu->uid, sensor->uid, modbus_strerror(errno));
   goto OnErrorExit;
 
 OnReadError:
-  afb_req_fail_f(request, "read-error",
-                 "ModbusSensorRequest: fail to read rtu=%s sensor=%s error=%s",
-                 rtu->uid, sensor->uid, modbus_strerror(errno));
+  afb_req_reply_string_f(request, AFB_ERRNO_INTERNAL_ERROR,
+      "read-error, ModbusSensorRequest: fail to read rtu=%s sensor=%s error=%s",
+      rtu->uid, sensor->uid, modbus_strerror(errno));
   goto OnErrorExit;
 
 OnSubscribeError:
-  afb_req_fail_f(
-      request, "subscribe-error",
-      "ModbusSensorRequest: fail to subscribe rtu=%s sensor=%s error=%s",
+  afb_req_reply_string_f(request, AFB_ERRNO_INTERNAL_ERROR,
+      "subscribe-error, ModbusSensorRequest: fail to subscribe rtu=%s sensor=%s error=%s",
       rtu->uid, sensor->uid, modbus_strerror(errno));
   goto OnErrorExit;
 
@@ -807,32 +801,34 @@ void ModbusRtuRequest(afb_req_t request, ModbusRtuT *rtu, json_object *queryJ) {
   err = rp_jsonc_unpack(queryJ, "{ss s?s s?i !}", "action", &action, "verbose",
                         &verbose, "uri", &uri);
   if (err) {
-    afb_req_fail_f(request, "ModbusRtuAdmin", "invalid query rtu=%s query=%s",
-                   rtu->uid, json_object_get_string(queryJ));
+    afb_req_reply_string_f(request, AFB_ERRNO_INTERNAL_ERROR,
+        "ModbusRtuAdmin, invalid query rtu=%s query=%s",
+        rtu->uid, json_object_get_string(queryJ));
     goto OnErrorExit;
   }
 
   if (!strcasecmp(action, "connect")) {
 
     if (rtu->context) {
-      afb_req_fail_f(request, "ModbusRtuAdmin",
-                     "cannot connect twice rtu=%s query=%s", rtu->uid,
-                     json_object_get_string(queryJ));
+      afb_req_reply_string_f(request, AFB_ERRNO_INTERNAL_ERROR,
+          "ModbusRtuAdmin, cannot connect twice rtu=%s query=%s",
+          rtu->uid, json_object_get_string(queryJ));
       goto OnErrorExit;
     }
 
     if (!uri) {
-      afb_req_fail_f(request, "ModbusRtuAdmin",
-                     "connot connect URI missing rtu=%s query=%s", rtu->uid,
-                     json_object_get_string(queryJ));
+      afb_req_reply_string_f(request, AFB_ERRNO_INTERNAL_ERROR,
+          "ModbusRtuAdmin, cannot connect URI missing rtu=%s query=%s",
+          rtu->uid, json_object_get_string(queryJ));
       goto OnErrorExit;
     }
 
     rtu->uri = uri;
     err = ModbusRtuConnect(afb_req_get_api(request), rtu);
     if (err) {
-      afb_req_fail_f(request, "ModbusRtuAdmin", "fail to parse uri=%s query=%s",
-                     uri, json_object_get_string(queryJ));
+      afb_req_reply_string_f(request, AFB_ERRNO_INTERNAL_ERROR,
+          "ModbusRtuAdmin, fail to parse uri=%s query=%s",
+          uri, json_object_get_string(queryJ));
       goto OnErrorExit;
     }
 
