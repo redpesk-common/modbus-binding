@@ -27,7 +27,7 @@
 #include "modbus-binding.h"
 
 typedef struct modbusRegistryS {
-   char *uid;
+   const char *uid;
    struct modbusRegistryS *next;
    ModbusFormatCbT *formats;
 } modbusRegistryT;
@@ -37,7 +37,7 @@ typedef struct modbusRegistryS {
 static modbusRegistryT *registryHead = NULL;
 
 // add a new plugin encoder to the registry
-void mbEncoderRegister (char *uid, ModbusFormatCbT *encoderCB) {
+void mbEncoderRegister (const char *uid, ModbusFormatCbT *encoderCB) {
     modbusRegistryT *registryIdx, *registryEntry;
 
     // create holding hat for encoder/decoder CB
