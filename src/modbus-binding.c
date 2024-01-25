@@ -534,8 +534,6 @@ static CtlHandleT *ReadConfig(afb_api_t rootapi, json_object *configJ) {
 
 OnErrorExit:
   if (controller != NULL) {
-    AFB_ERROR("Modbus start of controller api:%s failed",
-              controller->metadata.api);
     ctl_actionset_free(&controller->onstart);
     ctl_actionset_free(&controller->onevent);
     free(controller);
