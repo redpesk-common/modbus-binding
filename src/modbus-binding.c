@@ -506,7 +506,7 @@ static CtlHandleT *ReadConfig(afb_api_t rootapi, json_object *configJ) {
 
     // read controller sections configs (modbus section is read from
     // apicontrolcb after api creation)
-    if (ctl_subread_metadata(&controller->metadata, configJ, true) < 0)
+    if (ctl_subread_metadata(&controller->metadata, configJ, false) < 0)
       goto OnErrorExit;
 
     if (ctl_subread_plugins(&plugins, configJ, NULL, "plugins") < 0)
