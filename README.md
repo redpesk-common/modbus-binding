@@ -17,7 +17,3 @@ This is the usage for the modbus-simulation binary:
 
 example: modbus-simulation -a 127.0.0.1 -p 2000
 ```
-
-
-Fulup TDB
- - virer la section metadata pour aligner uid,api,info avec les autres bindings
