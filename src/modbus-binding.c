@@ -548,11 +548,21 @@ int afbBindingV4entry(afb_api_t rootapi, afb_ctlid_t ctlid, afb_ctlarg_t ctlarg,
   if (ctlid != afb_ctlid_Root_Entry)
     goto OnErrorExit;
 
+  // get some relevant config
+  json_object *config = ctlarg->root_entry.config;
+  if (NULL == json_object_object_get(config, "metadata")) {
+    config = afb_api_settings(rootapi);
+    if (NULL == json_object_object_get(config, "metadata")) {
+      AFB_API_ERROR(rootapi, "No metadata found in configurations.\n");
+      goto OnErrorExit;
+    }
+  }
+
   // register core encoders
   mbRegisterCoreEncoders();
 
   // process modbus controller config
-  CtlHandleT *controller = ReadConfig(rootapi, ctlarg->root_entry.config);
+  CtlHandleT *controller = ReadConfig(rootapi, config);
   if (!controller) {
     AFB_API_ERROR(rootapi, "Modbus fail to read binding controller config\n");
     goto OnErrorExit;
