@@ -17,14 +17,13 @@
 
 * From redpesk repos
   * application framework 'afb-binder' & 'afb-binding-devel'
-  * binding controller 'afb-libcontroller-devel'
-  * binding helpers 'afb-libhelpers-devel'
+  * binding helpers 'librp-utils-static'
+  * binding helpers 'afb-helpers4-static'
   * cmake template 'afb-cmake-modules'
   * ui-devel html5 'afb-ui-devtools'
 
 * From your preferred Linux distribution repos
   * Libmodbus 3.1.6
-  * Lua
 
 #### Install LibModbus manually
 
