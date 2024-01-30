@@ -1,5 +1,5 @@
 ###########################################################################
-# Copyright 2015, 2016, 2017, 2018, 2019 IoT.bzh
+# Copyright 2015 - 2024 IoT.bzh
 #
 # author: Fulup Ar Foll <fulup@iot.bzh>
 #
@@ -24,7 +24,7 @@ set(PROJECT_NAME modbus-binding)
 set(PROJECT_VERSION "2.0.0")
 set(PROJECT_PRETTY_NAME "Modbus binding")
 set(PROJECT_DESCRIPTION "Provide a Modbus binding support TCP Modbus with format conversion for multi-register")
-set(PROJECT_URL "https://github.com/iotbzh/modbus-service")
+set(PROJECT_URL "https://github.com/redpesk-industrial/modbus-binding")
 set(PROJECT_ICON "icon.png")
 set(PROJECT_AUTHOR "Iot-Team")
 set(PROJECT_AUTHOR_MAIL "secretaria@iot.bzh")
@@ -57,8 +57,8 @@ set(PROJECT_CMAKE_CONF_DIR "conf.d")
 # incompatibles features. Preprocessor define is named
 # KERNEL_MINIMAL_VERSION_OK.
 #
-# NOTE*** FOR NOW IT CHECKS KERNEL Yocto environment and
-# Yocto SDK Kernel version.
+# NOTE*** FOR NOW IT CHECKS KERNEL environment and
+# SDK Kernel version.
 # -----------------------------------------------
 #set (kernel_mandatory_version 4.8)
 #set (kernel_minimal_version 4.8)

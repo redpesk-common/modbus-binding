@@ -25,7 +25,7 @@
 #ifndef _MODBUS_BINDING_INCLUDE_
 #define _MODBUS_BINDING_INCLUDE_
 
-// added semaphaore to prevent multiple read on the same RS485
+// added semaphore to prevent multiple read on the same RS485
 #include <semaphore.h>
 
 // usefull classical include
