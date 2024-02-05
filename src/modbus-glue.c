@@ -412,10 +412,9 @@ static int ModbusSensorEventCreate(ModbusSensorT *sensor,
 
   err = (sensor->function->readCB)(sensor, responseJ);
   if (err) {
-    AFB_API_ERROR(sensor->api,
+    AFB_API_WARNING(sensor->api,
                   "ModbusSensorEventCreate: fail read sensor rtu=%s sensor=%s",
                   rtu->uid, sensor->uid);
-    goto OnErrorExit;
   }
 
   // if no even attach to sensor create one
