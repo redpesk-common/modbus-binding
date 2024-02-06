@@ -37,23 +37,18 @@ modbus RTU0/D01_SWITCH {"action":"read"}
 
 ## Adding your own config
 
-The JSON config file is selected from `afb-binder --name='afb-middlename-xxx'`
-option. This allows you to switch from one JSON config to the other
-without editing any file. `middlename` is used to select a specific
-config. For example `--name='afb-myrtu@lorient-modbus'` will select
-`modbus-myrtu@lorient-config.json`.
+The JSON config file is selected with the
+[binder options]({% chapter_link afb_binder.options-of-afb-binder %})
+(see `--config=configpath` or `--binding=bindingpath:configpath`).
 
-You may also choose to force your config file by exporting
-CONTROL_CONFIG_PATH environnement variable. For further information,
-check binding controller documentation
-[here]({% chapter_link libappcontroller-guides.controller-configuration %})
+```bash
+afb-binder --binding=/usr/redpesk/modbus-binding/lib/afb-modbus.so:/usr/redpesk/modbus-binding/etc/myconfig.json
+# or if you specify the binding to use in the config file
+afb-binder --config=/usr/redpesk/modbus-binding/etc/myconfig.json
+# or a mix of both
+afb-binder --binding=/usr/redpesk/modbus-binding/lib/afb-modbus.so --config=/usr/redpesk/modbus-binding/etc/myconfig.json
+```
 
 **Warning:** some TCP Modbus devices, as KingPigeon's, check SlaveID
 even for building I/O. Generic config make the assumption that your
 slaveID is set to `1`.
-
-```bash
-export CONTROL_CONFIG_PATH="$HOME/my-modbus-config-directory"
-afb-binder --name=afb-myconfig --port=1234  --ldpaths=src --workdir=. --verbose
-# connect with your browser on http://localhost:1234/devtools/index.html
-```

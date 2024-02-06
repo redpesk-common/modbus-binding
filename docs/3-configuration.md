@@ -18,15 +18,46 @@ Custom encoders/decoders are stored within user plugins (see sample at
 Modbus binding creates one verb per sensor. By default each sensor verb
 is prefixed by the RTU uid.
 
-The `etc` directory contains multiple working examples.
-`eastron-sdm72d.json` uses serial Modbus, the others use Ethernet
-Modbus.
+The `etc` directory contains multiple examples. `eastron-sdm72d.json`
+uses serial Modbus, the others use Ethernet Modbus. All the examples are
+not exactly ready-to-use.
+
+A proper working config is actually a binder config. It should have some
+metadata as show in the "config schema" section below. You can then add
+the Modbus-specific bits in the `binding/modbus` object of the config.
+There are samples of this object in the sections after "config schema".
+
+### modbus-binding config schema
+
+```json
+{
+    "name": "afb-modbus",
+    "no-ldpaths": true,
+    "alias": [
+        "/devtools:/usr/share/afb-ui-devtools/binder"
+    ],
+    "binding": [
+        {
+            "reference": "https://xn--stromzhler-v5a.eu/media/pdf/93/17/d7/SDM72DM-V2.pdf",
+            "path": "/usr/redpesk/modbus-binding/lib/afb-modbus.so",
+            "metadata": {
+                "uid": "modbus",
+                "version": "1.0",
+                "api": "modbus",
+                "info": "Generic Eastron default Test Config"
+            },
+            "modbus": {
+                SEE SAMPLES BELOW
+            }
+        }
+    ]
+}
+```
 
 ### Sample TCP modbus-binding config
 
 ```json
-"modbus": [
-  {
+"modbus": {
     "uid": "King-Pigeon-myrtu",
     "info": "King Pigeon TCP I/O Module",
     "uri" : "tcp://192.168.1.110:502",
@@ -86,12 +117,8 @@ Modbus.
           "type": "Register_input",
           "format": "FLOAT_DCBA",
           "sample": [
-              {
-                  "action": "read"
-              },
-              {
-                  "action": "subscribe"
-              }
+              { "action": "read" },
+              { "action": "subscribe" }
           ]
       },
       {
