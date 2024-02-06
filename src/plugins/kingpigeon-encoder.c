@@ -10,7 +10,7 @@
 #define _GNU_SOURCE
 
 #include "modbus-binding.h"
-#include <ctl-lib-plugin.h>
+#include <afb-helpers4/ctl-lib-plugin.h>
 
 CTL_PLUGIN_DECLARE("king_pigeon", "MODBUS plugin for king pigeon");
 

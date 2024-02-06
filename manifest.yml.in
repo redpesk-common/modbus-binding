@@ -1,0 +1,28 @@
+rp-manifest: 1
+id: @PROJECT_NAME@
+version: @PROJECT_VERSION@
+name: @PROJECT_NAME@
+description: @PROJECT_DESCRIPTION@
+author: @PROJECT_AUTHOR@ <@PROJECT_AUTHOR_MAIL@>
+license: @PROJECT_LICENSE@
+required-permission:
+  urn:AGL:permission::partner:scope-platform:
+    name: urn:AGL:permission::partner:scope-platform
+    value: required
+  urn:AGL:permission::public:hidden:
+    name: urn:AGL:permission::public:hidden
+    value: required
+  urn:AGL:permission::system:run-by-default:
+    name: urn:AGL:permission::system:run-by-default
+    value: required
+targets:
+  - target: main
+    content:
+      src: lib/afb-modbus.so
+      type: application/vnd.agl.service
+    provided-api:
+      - name: modbus
+        value: ws
+    required-binding:
+      - name: lib/afb-modbus.so
+        value: local

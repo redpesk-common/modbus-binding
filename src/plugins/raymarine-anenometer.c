@@ -9,7 +9,7 @@
 #define _GNU_SOURCE
 
 #include "modbus-binding.h"
-#include <ctl-lib-plugin.h>
+#include <afb-helpers4/ctl-lib-plugin.h>
 #include <time.h>
 
 #include <math.h>
