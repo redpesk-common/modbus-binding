@@ -774,8 +774,13 @@ int ModbusRtuIsConnected(afb_api_t api, ModbusRtuT *rtu) {
   int run;
 
   run = modbus_report_slave_id(ctx, sizeof(response), response);
-  if (run < 0)
-    goto OnErrorExit;
+  if (run < 0) {
+    // handle case where RTU does not support "Report Server ID"
+    if (strcmp(modbus_strerror(errno), "Illegal function") == 0)
+      return 1;
+    else
+      goto OnErrorExit;
+  }
 
   if (run > 0)
     return 1;
