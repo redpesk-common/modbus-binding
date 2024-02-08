@@ -88,11 +88,9 @@ static void InfoRtu(afb_req_t request, unsigned argc, afb_data_t const args[]) {
         if (status < 0) {
           rp_jsonc_pack(&elemJ, "{ss ss ss}", "uid", rtus[idx].uid, "uri",
                         rtus[idx].uri, "info", rtus[idx].info);
-          ;
         } else {
           rp_jsonc_pack(&elemJ, "{ss ss ss sb}", "uid", rtus[idx].uid, "uri",
-                        rtus[idx].uri, "info", rtus[idx].info, "status", err);
-          ;
+                        rtus[idx].uri, "info", rtus[idx].info, "status", status);
         }
         break;
       }
@@ -283,7 +281,7 @@ TypeErrorExit:
                 json_object_to_json_string(sensorJ));
   return -1;
 FunctionErrorExit:
-  AFB_API_ERROR(api, "SensorLoadOne: missing/invalid Modus Type=%s JSON=%s",
+  AFB_API_ERROR(api, "SensorLoadOne: missing/invalid Modbus Type=%s JSON=%s",
                 type, json_object_to_json_string(sensorJ));
   return -1;
 OnErrorExit:
@@ -521,7 +519,7 @@ static CtlHandleT *ReadConfig(afb_api_t rootapi, json_object *configJ) {
     if (ctl_subread_actionset(&controller->onevent, configJ, "events") < 0)
       goto OnErrorExit;
 
-    // controller api should be created before processing modus config
+    // controller api should be created before processing modbus config
     if (afb_create_api(&api, controller->metadata.api,
                        controller->metadata.info, 1, AfbApiCtrlCb,
                        controller) < 0)
