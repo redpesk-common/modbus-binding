@@ -31,26 +31,20 @@ There are samples of this object in the sections after "config schema".
 
 ```json
 {
-    "name": "afb-modbus",
-    "no-ldpaths": true,
-    "alias": [
-        "/devtools:/usr/share/afb-ui-devtools/binder"
-    ],
-    "binding": [
-        {
-            "reference": "https://xn--stromzhler-v5a.eu/media/pdf/93/17/d7/SDM72DM-V2.pdf",
-            "path": "/usr/redpesk/modbus-binding/lib/afb-modbus.so",
-            "metadata": {
-                "uid": "modbus",
-                "version": "1.0",
-                "api": "modbus",
-                "info": "Generic Eastron default Test Config"
-            },
-            "modbus": {
-                SEE SAMPLES BELOW
-            }
-        }
-    ]
+  "binding": ["/usr/redpesk/modbus-binding/lib/modbus-binding.so"],
+  "set": {
+    "modbus-binding.so": {
+      "metadata": {
+        "uid": "modbus",
+        "version": "2.0",
+        "api": "modbus",
+        "info": "My config name"
+      },
+      "modbus": {
+        SEE SAMPLES BELOW
+      }
+    }
+  }
 }
 ```
 
@@ -58,42 +52,42 @@ There are samples of this object in the sections after "config schema".
 
 ```json
 "modbus": {
-    "uid": "King-Pigeon-myrtu",
-    "info": "King Pigeon TCP I/O Module",
-    "uri" : "tcp://192.168.1.110:502",
-    "privilege": "global RTU required privilege",
-    "autostart" : 1, // connect to RTU at binder start
-    "prefix": "myrtu", // api verb prefix
-    "timeout": xxxx, // optional response timeout in ms
-    "debug": 0-3, // option libmodbus debug level
-    "hertz": 10, // default pooling for event subscription
-    "idle": 0, // force event even when value does not change every hertz*idle count
-    "sensors": [
-      {
-        "uid": "PRODUCT_INFO",
-        "info" : "Array with Product Number, Lot, Serial, OnlineTime, Hardware, Firmware",
-        "function": "Input_Register",
-        "format" : "plugin://king-pigeon/devinfo",
-        "register" : 26,
-        "privilege": "optional sensor required privilege"
-      },
-      {
-        "uid": "DIN01_switch",
-        "function": "Coil_input",
-        "format" : "BOOL",
-        "register" : 1,
-        "privilege": "optional sensor required privilege",
-        "hertz": xxx, // special pooling rate for this sensor
-        "idle": xxx, // special idle force event when value does not change
-      },
-      {
-        "uid": "DIN01_counter",
-        "function": "Register_Holding",
-        "format" : "UINT32",
-        "register" : 6,
-        "privilege": "optional sensor required privilege",
-        "hertz": xxx // special pooling rate for this sensor
-      },
+  "uid": "King-Pigeon-myrtu",
+  "info": "King Pigeon TCP I/O Module",
+  "uri" : "tcp://192.168.1.110:502",
+  "privilege": "global RTU required privilege",
+  "autostart" : 1, // connect to RTU at binder start
+  "prefix": "myrtu", // api verb prefix
+  "timeout": xxxx, // optional response timeout in ms
+  "debug": 0-3, // option libmodbus debug level
+  "hertz": 10, // default pooling for event subscription
+  "idle": 0, // force event even when value does not change every hertz*idle count
+  "sensors": [
+    {
+      "uid": "PRODUCT_INFO",
+      "info" : "Array with Product Number, Lot, Serial, OnlineTime, Hardware, Firmware",
+      "function": "Input_Register",
+      "format" : "plugin://king-pigeon/devinfo",
+      "register" : 26,
+      "privilege": "optional sensor required privilege"
+    },
+    {
+      "uid": "DIN01_switch",
+      "function": "Coil_input",
+      "format" : "BOOL",
+      "register" : 1,
+      "privilege": "optional sensor required privilege",
+      "hertz": xxx, // special pooling rate for this sensor
+      "idle": xxx, // special idle force event when value does not change
+    },
+    {
+      "uid": "DIN01_counter",
+      "function": "Register_Holding",
+      "format" : "UINT32",
+      "register" : 6,
+      "privilege": "optional sensor required privilege",
+      "hertz": xxx // special pooling rate for this sensor
+    },
 ...
 ```
 
@@ -111,22 +105,22 @@ There are samples of this object in the sections after "config schema".
   "privilege": "Eastron:Modbus",
   "hertz": 10,
   "sensors": [
-      {
-          "uid": "Volts-L1",
-          "register": 0,
-          "type": "Register_input",
-          "format": "FLOAT_DCBA",
-          "sample": [
-              { "action": "read" },
-              { "action": "subscribe" }
-          ]
-      },
-      {
-          "uid": "Volts-L2",
-          "register": 2,
-          "type": "Register_input",
-          "format": "FLOAT_DCBA"
-      },
+    {
+      "uid": "Volts-L1",
+      "register": 0,
+      "type": "Register_input",
+      "format": "FLOAT_DCBA",
+      "sample": [
+        { "action": "read" },
+        { "action": "subscribe" }
+      ]
+    },
+    {
+      "uid": "Volts-L2",
+      "register": 2,
+      "type": "Register_input",
+      "format": "FLOAT_DCBA"
+    },
 ...
 ```
 
