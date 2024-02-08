@@ -18,9 +18,9 @@ Custom encoders/decoders are stored within user plugins (see sample at
 Modbus binding creates one verb per sensor. By default each sensor verb
 is prefixed by the RTU uid.
 
-The `etc` directory contains multiple examples. `eastron-sdm72d.json`
-uses serial Modbus, the others use Ethernet Modbus. All the examples are
-not exactly ready-to-use.
+The `config-samples` directory contains multiple examples.
+`eastron-sdm72d.json` uses serial Modbus, the others use Ethernet
+Modbus. All the examples are not exactly ready-to-use.
 
 A proper working config is actually a binder config. It should have some
 metadata as show in the "config schema" section below. You can then add

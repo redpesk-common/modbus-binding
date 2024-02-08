@@ -17,7 +17,7 @@
                 "-v",
                 "--monitoring",
                 "--trap-faults=0",
-                "--config=conf.d/project/etc/eastron-sdm72d.json",
+                "--config=config-samples/eastron-sdm72d.json",
             ],
             "cwd": "${workspaceFolder}",
             "initCommands": [

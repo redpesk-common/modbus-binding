@@ -63,7 +63,7 @@ install(TARGETS modbus-binding DESTINATION ${APP_DIR}/lib)
 install(FILES ${CMAKE_BINARY_DIR}/manifest.yml DESTINATION ${APP_DIR}/.rpconfig)
 install(FILES ${CMAKE_BINARY_DIR}/modbus.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 install(FILES src/modbus-binding.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-install(DIRECTORY etc DESTINATION ${APP_DIR})
+install(DIRECTORY config-samples/ DESTINATION ${APP_DIR}/etc)
 
 # Build & install plugins
 add_library(kingpigeon SHARED src/plugins/kingpigeon-encoder.c)
