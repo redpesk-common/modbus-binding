@@ -68,69 +68,88 @@ ModbusFormatCbT *mvOneFormatFind (ModbusFormatCbT *format, const char *uid) {
     return (&format[idx]);
 }
 
-static void PluginParseURI (const char* uri, char **plugin, char **format) {
-    char *chaine;
-    int idx;
-    static int prefixlen = sizeof(PLUGIN_ACTION_PREFIX)-1;
+/**
+ * Length of the plugin part in a format specifier URI
+ * 
+ * Input:
+ *   const char* uri:
+ *     format specifier URI (ie. "plugin://king-pigeon#devinfo" or "BOOL")
+ * Return value:
+ *   unsigned:
+ *     length of the plugin UID part of the input URI;
+ *     0 if there is no plugin part
+ *     -1 when the URI is ill-formed (ie. "plugin://something" or "plugin://#something")
+*/
+static int PluginParseURI (const char* uri) {
+    char *hash;
+    unsigned length;
+    static int prefixlen = sizeof(PLUGIN_ACTION_PREFIX) - 1;
 
-    if (strncasecmp(uri, PLUGIN_ACTION_PREFIX, prefixlen)) goto NoPluginExit;
+    if (strncasecmp(uri, PLUGIN_ACTION_PREFIX, prefixlen))
+        return 0;
 
-    // break URI in substring ignoring leading tcp:
-    chaine= strdup(uri);
-    for (idx=prefixlen; idx < strlen(chaine); idx ++) {
-        if (chaine[idx] == 0) break;
-        if (chaine[idx] == '#') chaine[idx] = 0;
-    }
+    // find where the '#' is
+    hash = strchr(uri, '#');
+    if (!hash) // "plugin://" but no "#"
+        return -1;
+    // calculate plugin UID length
+    length = hash - &uri[prefixlen];
+    if (length == 0) // no pluginuid ie. "plugin://#format"
+        return -1;
 
-    // extract IP addr and port
-    *plugin = &chaine[prefixlen];
-    *format= &chaine[idx];
-    return;
-
-NoPluginExit:
-    return;
+    return length;
 }
 
 
 // search for a plugin encoders/decoders CB list
 ModbusFormatCbT *mbEncoderFind (afb_api_t api, const char *uri) {
-    char *pluginuid = NULL, *formatuid = NULL;
+    const char *pluginuid = NULL, *formatuid = NULL;
+    int hashPos;
     modbusRegistryT *registryIdx;
     ModbusFormatCbT *format;
 
-    PluginParseURI (uri, &pluginuid, &formatuid);
+    hashPos = PluginParseURI (uri);
+    if (hashPos < 0) {
+        AFB_API_ERROR(api, "mbEncoderFind: format specifier \"%s\" is ill-formed", uri);
+        goto OnErrorExit;
+    }
 
-    // if no plugin search for core use directly format uri
-    if (!pluginuid) {
-        for (registryIdx= registryHead; registryIdx->uid && registryIdx->next; registryIdx=registryIdx->next);
-        if (registryIdx->uid) {
+    // find plugin in registry
+    if (hashPos == 0) {
+        // find registry with uid NULL (core encoders)
+        formatuid = uri;
+        for (registryIdx= registryHead; registryIdx && registryIdx->uid; registryIdx=registryIdx->next);
+        if (!registryIdx) {
             AFB_API_ERROR(api, "mbEncoderFind: (Internal error) fail find core encoders");
             goto OnErrorExit;
         }
+    } else {
+        pluginuid = &uri[sizeof(PLUGIN_ACTION_PREFIX) - 1]; // is not null-terminated, pluginuid is hashPos long
+        formatuid = &pluginuid[hashPos + 1];
 
-        format= mvOneFormatFind (registryIdx->formats, uri);
-        if (!format || !format->uid) {
-            AFB_API_ERROR(api, "mbEncoderFind: Fail find format='%s' within default core encoders", uri);
-            goto OnErrorExit;
-        }
-
-    }  else {
-        for (registryIdx= registryHead; registryIdx->next; registryIdx=registryIdx->next) {
-            if (registryIdx->uid && !strcasecmp (registryIdx->uid, uri)) break;
+        // find the plugin we want or leave registryIdx to NULL
+        for (registryIdx= registryHead; registryIdx; registryIdx=registryIdx->next) {
+            if (registryIdx->uid
+                && !strncasecmp (registryIdx->uid, pluginuid, hashPos)
+                && registryIdx->uid[hashPos] == '\0')
+                break;
         }
         if (!registryIdx) {
-            AFB_API_ERROR(api, "mbEncoderFind: Fail to find plugin='%s' format encoder ", formatuid);
-            goto OnErrorExit;
-        }
-
-        format= mvOneFormatFind (registryIdx->formats, formatuid);
-        if (!format || !format->uid) {
-            AFB_API_ERROR(api, "mbEncoderFind: Fail to find plugin='%s' format='%s' encoder", pluginuid, formatuid);
+            AFB_API_ERROR(api, "mbEncoderFind: Fail to find plugin='%.*s' format encoder", hashPos, pluginuid);
             goto OnErrorExit;
         }
     }
 
-    return (format);
+    // find format within selected registry
+    format = mvOneFormatFind (registryIdx->formats, formatuid);
+    if (!format || !format->uid) {
+        if (hashPos <= 0)
+            AFB_API_ERROR(api, "mbEncoderFind: Fail find format='%s' within default core encoders", formatuid);
+        else
+            AFB_API_ERROR(api, "mbEncoderFind: Fail to find plugin='%.*s' format='%s' encoder", hashPos, pluginuid, formatuid);
+        goto OnErrorExit;
+    }
+    return format;
 
 OnErrorExit:
     return NULL;
