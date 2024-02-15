@@ -339,7 +339,7 @@ static int ModbusLoadOne(afb_api_t api, ModbusRtuT *rtu, json_object *rtuJ) {
 
   // if uri is provided let's try to connect now
   if (rtu->context->uri && rtu->autostart) {
-    err = ModbusRtuConnect(api, rtu);
+    err = ModbusRtuConnect(api, rtu->context, rtu->uid);
     if (err) {
       AFB_API_ERROR(api, "ModbusLoadOne: fail to connect TTY/RTU uid=%s uri=%s",
                     rtu->uid, rtu->uid);

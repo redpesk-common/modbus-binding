@@ -617,15 +617,15 @@ OnErrorExit:
   return 1;
 }
 
-int ModbusRtuConnect(afb_api_t api, ModbusRtuT *rtu) {
+int ModbusRtuConnect(afb_api_t api, ModbusContextT *context, const char *rtu_uid) {
   modbus_t *ctx;
 
-  if (!strncmp(rtu->context->uri, "tty:", 4)) {
+  if (!strncmp(context->uri, "tty:", 4)) {
     char *ttydev = NULL;
     int speed = 19200;
-    if (ModbusParseTTY(rtu->context->uri, &ttydev, &speed)) {
+    if (ModbusParseTTY(context->uri, &ttydev, &speed)) {
       AFB_API_ERROR(api, "ModbusRtuConnect: fail to parse uid=%s uri=%s",
-                    rtu->uid, rtu->context->uri);
+                    rtu_uid, context->uri);
       goto OnErrorExit;
     }
 
@@ -634,33 +634,33 @@ int ModbusRtuConnect(afb_api_t api, ModbusRtuT *rtu) {
       AFB_API_ERROR(
           api,
           "ModbusRtuConnect: fail to connect tty uid=%s ttydev=%s speed=%d",
-          rtu->uid, ttydev, speed);
+          rtu_uid, ttydev, speed);
       modbus_free(ctx);
       goto OnErrorExit;
     }
 
     // serial link do not support simultaneous read
-    rtu->context->semaphore = malloc (sizeof(sem_t));
-    int err = sem_init(rtu->context->semaphore, 0, 1);
+    context->semaphore = malloc (sizeof(sem_t));
+    int err = sem_init(context->semaphore, 0, 1);
     if (err < 0) {
         AFB_API_ERROR(api, "ModbusRtuConnect: fail to init tty semaphore uid=%s uri=%s",
-                    rtu->uid, rtu->context->uri);
+                    rtu_uid, context->uri);
         goto OnErrorExit;
     }
 
   } else {
     char *addr;
     int port;
-    if (ModbusParseURI(rtu->context->uri, &addr, &port)) {
+    if (ModbusParseURI(context->uri, &addr, &port)) {
       AFB_API_ERROR(api, "ModbusRtuConnect: fail to parse uid=%s uri=%s",
-                    rtu->uid, rtu->context->uri);
+                    rtu_uid, context->uri);
       goto OnErrorExit;
     }
     ctx = modbus_new_tcp(addr, port);
     if (modbus_connect(ctx) == -1) {
       AFB_API_ERROR(
           api, "ModbusRtuConnect: fail to connect TCP uid=%s addr=%s port=%d",
-          rtu->uid, addr, port);
+          rtu_uid, addr, port);
       modbus_free(ctx);
       goto OnErrorExit;
     }
@@ -694,7 +694,7 @@ int ModbusRtuConnect(afb_api_t api, ModbusRtuT *rtu) {
   }
 
   // store current libmodbus ctx with rtu handle
-  rtu->context = (void *)ctx;
+  context->context = (void *)ctx;
   return 0;
 
 OnErrorExit:
@@ -828,7 +828,7 @@ void ModbusRtuRequest(afb_req_t request, ModbusRtuT *rtu, json_object *queryJ) {
     }
 
     rtu->context->uri = uri;
-    err = ModbusRtuConnect(afb_req_get_api(request), rtu);
+    err = ModbusRtuConnect(afb_req_get_api(request), rtu->context, rtu->uid);
     if (err) {
       afb_req_reply_string_f(request, AFB_ERRNO_INTERNAL_ERROR,
           "ModbusRtuAdmin, fail to connect: uri=%s query=%s",
