@@ -72,7 +72,7 @@ OnErrorExit:
 
 // try to reconnect when RTU close connection
 static void ModbusReconnect(ModbusSensorT *sensor) {
-  modbus_t *ctx = (modbus_t *)sensor->rtu->context;
+  modbus_t *ctx = (modbus_t *)sensor->rtu->context->context;
   AFB_API_NOTICE(sensor->api, "ModbusReconnect: Try reconnecting rtu=%s",
                  sensor->rtu->uid);
 
@@ -89,9 +89,9 @@ static void ModbusReconnect(ModbusSensorT *sensor) {
 static int ModBusReadBits(ModbusSensorT *sensor, json_object **responseJ) {
   ModbusFunctionCbT *function = sensor->function;
   ModbusRtuT *rtu = sensor->rtu;
-  modbus_t *ctx = (modbus_t *)rtu->context;
+  modbus_t *ctx = (modbus_t *)rtu->context->context;
   int err;
-  if (sensor->rtu->semaphore) sem_wait (sensor->rtu->semaphore);
+  if (rtu->context->semaphore) sem_wait (rtu->context->semaphore);
 
   // allocate input buffer on 1st read (all buffer are in 16bit for event diff
   // processing)
@@ -124,7 +124,7 @@ static int ModBusReadBits(ModbusSensorT *sensor, json_object **responseJ) {
       goto OnErrorExit;
   }
 
-  if (sensor->rtu->semaphore) sem_post (sensor->rtu->semaphore);
+  if (rtu->context->semaphore) sem_post (rtu->context->semaphore);
   return 0;
 
 OnErrorExit:
@@ -134,7 +134,7 @@ OnErrorExit:
   if (err == -1)
     ModbusReconnect(sensor);
 
-  if (sensor->rtu->semaphore) sem_post (sensor->rtu->semaphore);
+  if (rtu->context->semaphore) sem_post (rtu->context->semaphore);
   return 1;
 }
 
@@ -142,9 +142,9 @@ static int ModBusReadRegisters(ModbusSensorT *sensor, json_object **responseJ) {
   ModbusFunctionCbT *function = sensor->function;
   ModbusFormatCbT *format = sensor->format;
   ModbusRtuT *rtu = sensor->rtu;
-  modbus_t *ctx = (modbus_t *)rtu->context;
+  modbus_t *ctx = (modbus_t *)rtu->context->context;
   int err, regcount;
-  if (sensor->rtu->semaphore) sem_wait (sensor->rtu->semaphore);
+  if (rtu->context->semaphore) sem_wait (rtu->context->semaphore);
 
   regcount =
       sensor->count * format->nbreg; // number of register to read on device
@@ -180,7 +180,7 @@ static int ModBusReadRegisters(ModbusSensorT *sensor, json_object **responseJ) {
       goto OnErrorExit;
   }
 
-  if (sensor->rtu->semaphore) sem_post (sensor->rtu->semaphore);
+  if (rtu->context->semaphore) sem_post (rtu->context->semaphore);
   return 0;
 
 OnErrorExit:
@@ -190,17 +190,17 @@ OnErrorExit:
   if (err == -1)
     ModbusReconnect(sensor);
 
-  if (sensor->rtu->semaphore) sem_post (sensor->rtu->semaphore);
+  if (rtu->context->semaphore) sem_post (rtu->context->semaphore);
   return 1;
 }
 
 static int ModBusWriteBits(ModbusSensorT *sensor, json_object *queryJ) {
   ModbusFormatCbT *format = sensor->format;
   ModbusRtuT *rtu = sensor->rtu;
-  modbus_t *ctx = (modbus_t *)rtu->context;
+  modbus_t *ctx = (modbus_t *)rtu->context->context;
   json_object *elemJ;
   int err, idx;
-  if (sensor->rtu->semaphore) sem_wait (sensor->rtu->semaphore);
+  if (rtu->context->semaphore) sem_wait (rtu->context->semaphore);
 
   uint8_t *data8 =
       (uint8_t *)alloca(sizeof(uint8_t) * format->nbreg * sensor->count);
@@ -226,7 +226,7 @@ static int ModBusWriteBits(ModbusSensorT *sensor, json_object *queryJ) {
       goto OnErrorExit;
   }
 
-  if (sensor->rtu->semaphore) sem_post (sensor->rtu->semaphore);
+  if (rtu->context->semaphore) sem_post (rtu->context->semaphore);
   return 0;
 
 OnErrorExit:
@@ -238,14 +238,14 @@ OnErrorExit:
   if (err == -1)
     ModbusReconnect(sensor);
 
-  if (sensor->rtu->semaphore) sem_post (sensor->rtu->semaphore);
+  if (rtu->context->semaphore) sem_post (rtu->context->semaphore);
   return 1;
 }
 
 static int ModBusWriteRegisters(ModbusSensorT *sensor, json_object *queryJ) {
   ModbusFormatCbT *format = sensor->format;
   ModbusRtuT *rtu = sensor->rtu;
-  modbus_t *ctx = (modbus_t *)rtu->context;
+  modbus_t *ctx = (modbus_t *)rtu->context->context;
   json_object *elemJ;
   int err = 0;
   int idx = 0;
@@ -258,7 +258,7 @@ static int ModBusWriteRegisters(ModbusSensorT *sensor, json_object *queryJ) {
   source.sensor = sensor->uid;
   source.api = sensor->api;
   source.context = sensor->context;
-  if (sensor->rtu->semaphore) sem_wait (sensor->rtu->semaphore);
+  if (rtu->context->semaphore) sem_wait (rtu->context->semaphore);
 
   if (!format->encodeCB) {
     AFB_API_NOTICE(sensor->api, "ModBusFormatResponse: No encodeCB uid=%s",
@@ -296,7 +296,7 @@ static int ModBusWriteRegisters(ModbusSensorT *sensor, json_object *queryJ) {
     if (err != format->nbreg)
       goto OnErrorExit;
   }
-  if (sensor->rtu->semaphore) sem_post (sensor->rtu->semaphore);
+  if (rtu->context->semaphore) sem_post (rtu->context->semaphore);
   return 0;
 
 OnErrorExit:
@@ -307,7 +307,7 @@ OnErrorExit:
       json_object_get_string(queryJ));
   if (err == -1)
     ModbusReconnect(sensor);
-  if (sensor->rtu->semaphore) sem_post (sensor->rtu->semaphore);
+  if (rtu->context->semaphore) sem_post (rtu->context->semaphore);
   return 1;
 }
 
@@ -462,7 +462,7 @@ void ModbusSensorRequest(afb_req_t request, ModbusSensorT *sensor,
   json_object *dataJ, *responseJ = NULL;
   int err;
 
-  if (!rtu->context) {
+  if (!rtu->context->context) {
     afb_req_reply_string_f(request, AFB_ERRNO_INTERNAL_ERROR,
         "not-connected, ModbusSensorRequest: RTU not connected rtu=%s sensor=%s query=%s",
         rtu->uid, sensor->uid, json_object_get_string(queryJ));
@@ -482,9 +482,9 @@ void ModbusSensorRequest(afb_req_t request, ModbusSensorT *sensor,
     if (!sensor->function->writeCB)
       goto OnWriteError;
 
-    if (sensor->rtu->semaphore) sem_wait (sensor->rtu->semaphore);
+    if (rtu->context->semaphore) sem_wait (rtu->context->semaphore);
     err = (sensor->function->writeCB)(sensor, dataJ);
-    if (sensor->rtu->semaphore) sem_post (sensor->rtu->semaphore);
+    if (rtu->context->semaphore) sem_post (rtu->context->semaphore);
 
     if (err)
       goto OnWriteError;
@@ -620,12 +620,12 @@ OnErrorExit:
 int ModbusRtuConnect(afb_api_t api, ModbusRtuT *rtu) {
   modbus_t *ctx;
 
-  if (!strncmp(rtu->uri, "tty:", 4)) {
+  if (!strncmp(rtu->context->uri, "tty:", 4)) {
     char *ttydev = NULL;
     int speed = 19200;
-    if (ModbusParseTTY(rtu->uri, &ttydev, &speed)) {
+    if (ModbusParseTTY(rtu->context->uri, &ttydev, &speed)) {
       AFB_API_ERROR(api, "ModbusRtuConnect: fail to parse uid=%s uri=%s",
-                    rtu->uid, rtu->uri);
+                    rtu->uid, rtu->context->uri);
       goto OnErrorExit;
     }
 
@@ -640,20 +640,20 @@ int ModbusRtuConnect(afb_api_t api, ModbusRtuT *rtu) {
     }
 
     // serial link do not support simultaneous read
-    rtu->semaphore= malloc (sizeof(sem_t));
-    int err= sem_init(rtu->semaphore, 0, 1);
+    rtu->context->semaphore = malloc (sizeof(sem_t));
+    int err = sem_init(rtu->context->semaphore, 0, 1);
     if (err < 0) {
         AFB_API_ERROR(api, "ModbusRtuConnect: fail to init tty semaphore uid=%s uri=%s",
-                    rtu->uid, rtu->uri);
+                    rtu->uid, rtu->context->uri);
         goto OnErrorExit;
     }
 
   } else {
     char *addr;
     int port;
-    if (ModbusParseURI(rtu->uri, &addr, &port)) {
+    if (ModbusParseURI(rtu->context->uri, &addr, &port)) {
       AFB_API_ERROR(api, "ModbusRtuConnect: fail to parse uid=%s uri=%s",
-                    rtu->uid, rtu->uri);
+                    rtu->uid, rtu->context->uri);
       goto OnErrorExit;
     }
     ctx = modbus_new_tcp(addr, port);
@@ -770,7 +770,7 @@ void ModbusRtuSensorsId(ModbusRtuT *rtu, int verbose, json_object *responseJ) {
 
 int ModbusRtuIsConnected(afb_api_t api, ModbusRtuT *rtu) {
   uint8_t response[MODBUS_MAX_PDU_LENGTH];
-  modbus_t *ctx = (modbus_t *)rtu->context;
+  modbus_t *ctx = (modbus_t *)rtu->context->context;
   int run;
 
   run = modbus_report_slave_id(ctx, sizeof(response), response);
@@ -795,15 +795,15 @@ OnErrorExit:
 }
 
 void ModbusRtuRequest(afb_req_t request, ModbusRtuT *rtu, json_object *queryJ) {
-  modbus_t *ctx = (modbus_t *)rtu->context;
+  modbus_t *ctx = (modbus_t *)rtu->context->context;
   const char *action;
   const char *uri = NULL;
   int verbose = 0;
   json_object *responseJ = NULL;
   int err;
 
-  err = rp_jsonc_unpack(queryJ, "{ss s?s s?i !}", "action", &action, "verbose",
-                        &verbose, "uri", &uri);
+  err = rp_jsonc_unpack(queryJ, "{ss s?s s?i !}",
+                        "action", &action, "uri", &uri, "verbose", &verbose);
   if (err) {
     afb_req_reply_string_f(request, AFB_ERRNO_INTERNAL_ERROR,
         "ModbusRtuAdmin, invalid query rtu=%s query=%s",
@@ -813,7 +813,7 @@ void ModbusRtuRequest(afb_req_t request, ModbusRtuT *rtu, json_object *queryJ) {
 
   if (!strcasecmp(action, "connect")) {
 
-    if (rtu->context) {
+    if (rtu->context->context) {
       afb_req_reply_string_f(request, AFB_ERRNO_INTERNAL_ERROR,
           "ModbusRtuAdmin, cannot connect twice rtu=%s query=%s",
           rtu->uid, json_object_get_string(queryJ));
@@ -827,11 +827,11 @@ void ModbusRtuRequest(afb_req_t request, ModbusRtuT *rtu, json_object *queryJ) {
       goto OnErrorExit;
     }
 
-    rtu->uri = uri;
+    rtu->context->uri = uri;
     err = ModbusRtuConnect(afb_req_get_api(request), rtu);
     if (err) {
       afb_req_reply_string_f(request, AFB_ERRNO_INTERNAL_ERROR,
-          "ModbusRtuAdmin, fail to parse uri=%s query=%s",
+          "ModbusRtuAdmin, fail to connect: uri=%s query=%s",
           uri, json_object_get_string(queryJ));
       goto OnErrorExit;
     }
@@ -839,7 +839,7 @@ void ModbusRtuRequest(afb_req_t request, ModbusRtuT *rtu, json_object *queryJ) {
   } else if (!strcasecmp(action, "disconnect")) {
     modbus_close(ctx);
     modbus_free(ctx);
-    rtu->context = NULL;
+    rtu->context->context = NULL;
 
   } else if (!strcasecmp(action, "info")) {
 

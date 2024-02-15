@@ -81,16 +81,16 @@ static void InfoRtu(afb_req_t request, unsigned argc, afb_data_t const args[]) {
       case 1:
       default:
         rp_jsonc_pack(&elemJ, "{ss ss ss}", "uid", rtus[idx].uid, "uri",
-                      rtus[idx].uri, "info", rtus[idx].info);
+                      rtus[idx].context->uri, "info", rtus[idx].info);
         break;
       case 2:
         status = ModbusRtuIsConnected(afb_req_get_api(request), &rtus[idx]);
         if (status < 0) {
           rp_jsonc_pack(&elemJ, "{ss ss ss}", "uid", rtus[idx].uid, "uri",
-                        rtus[idx].uri, "info", rtus[idx].info);
+                        rtus[idx].context->uri, "info", rtus[idx].info);
         } else {
           rp_jsonc_pack(&elemJ, "{ss ss ss sb}", "uid", rtus[idx].uid, "uri",
-                        rtus[idx].uri, "info", rtus[idx].info, "status", status);
+                        rtus[idx].context->uri, "info", rtus[idx].info, "status", status);
         }
         break;
       }
@@ -104,7 +104,7 @@ static void InfoRtu(afb_req_t request, unsigned argc, afb_data_t const args[]) {
     rtusJ = json_object_new_array();
     for (idx = 0; rtus[idx].uid; idx++) {
       status = ModbusRtuIsConnected(afb_req_get_api(request), &rtus[idx]);
-      err = rp_jsonc_pack(&statusJ, "{ss si sb}", "uri", rtus[idx].uri,
+      err = rp_jsonc_pack(&statusJ, "{ss si sb}", "uri", rtus[idx].context->uri,
                           "slaveid", rtus[idx].slaveid, "status", status >= 0);
 
       // prepare array to hold every sensor verbs
@@ -298,9 +298,10 @@ static int ModbusLoadOne(afb_api_t api, ModbusRtuT *rtu, json_object *rtuJ) {
   assert(api);
 
   memset(rtu, 0, sizeof(ModbusRtuT)); // default is empty
+  rtu->context = (ModbusContextT *)calloc(1, sizeof(ModbusContextT));
   err = rp_jsonc_unpack(
       rtuJ, "{ss,s?s,s?s,s?s,s?i,s?s,s?i,s?i,s?i,s?i,s?i,s?i,so}", "uid",
-      &rtu->uid, "info", &rtu->info, "uri", &rtu->uri, "privileges",
+      &rtu->uid, "info", &rtu->info, "uri", &rtu->context->uri, "privileges",
       &rtu->privileges, "autostart", &rtu->autostart, "prefix", &rtu->prefix,
       "slaveid", &rtu->slaveid, "debug", &rtu->debug, "timeout", &rtu->timeout,
       "idlen", &rtu->idlen, "hertz", &rtu->hertz, "idle", &rtu->idle, "sensors",
@@ -337,7 +338,7 @@ static int ModbusLoadOne(afb_api_t api, ModbusRtuT *rtu, json_object *rtuJ) {
   }
 
   // if uri is provided let's try to connect now
-  if (rtu->uri && rtu->autostart) {
+  if (rtu->context->uri && rtu->autostart) {
     err = ModbusRtuConnect(api, rtu);
     if (err) {
       AFB_API_ERROR(api, "ModbusLoadOne: fail to connect TTY/RTU uid=%s uri=%s",

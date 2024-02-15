@@ -65,6 +65,7 @@ typedef enum {
 typedef struct ModbusSensorS ModbusSensorT;
 typedef struct ModbusFunctionCbS ModbusFunctionCbT;
 typedef struct ModbusRtuS ModbusRtuT;
+typedef struct ModbusContextS ModbusContextT;
 typedef struct ModbusEncoderCbS ModbusFormatCbT;
 typedef struct ModbusSourceS ModbusSourceT;
 
@@ -84,12 +85,17 @@ struct ModbusSourceS {
   void *context;
 };
 
- struct ModbusRtuS {
+struct ModbusContextS {
+  void *context;
+  sem_t *semaphore;
+  const char *uri;
+};
+
+struct ModbusRtuS {
   const char *uid;
   const char *info;
   const char *privileges;
   const char *prefix;
-  const char *uri;
   const char *adminapi;
   const int timeout;
   const int idle;
@@ -98,8 +104,7 @@ struct ModbusSourceS {
   uint hertz;  // default pooling frequency when subscribing to sensors
   const uint idlen;  // no default for slaveid len but use 1 when nothing given
   const uint autostart;  // 0=no 1=try 2=mandatory
-  void *context;
-  sem_t *semaphore;
+  ModbusContextT *context;
 
   ModbusSensorT *sensors;
 };
