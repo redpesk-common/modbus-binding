@@ -86,12 +86,17 @@ static void ModbusReconnect(ModbusSensorT *sensor) {
   }
 }
 
+static int ModbusRtuSemWait(afb_api_t api, ModbusRtuT *rtu) {
+  if (rtu->context->semaphore) sem_wait (rtu->context->semaphore);
+  return ModbusRtuSetSlave(api, rtu);
+}
+
 static int ModBusReadBits(ModbusSensorT *sensor, json_object **responseJ) {
   ModbusFunctionCbT *function = sensor->function;
   ModbusRtuT *rtu = sensor->rtu;
   modbus_t *ctx = (modbus_t *)rtu->context->context;
   int err;
-  if (rtu->context->semaphore) sem_wait (rtu->context->semaphore);
+  ModbusRtuSemWait(sensor->api, rtu);
 
   // allocate input buffer on 1st read (all buffer are in 16bit for event diff
   // processing)
@@ -144,7 +149,7 @@ static int ModBusReadRegisters(ModbusSensorT *sensor, json_object **responseJ) {
   ModbusRtuT *rtu = sensor->rtu;
   modbus_t *ctx = (modbus_t *)rtu->context->context;
   int err, regcount;
-  if (rtu->context->semaphore) sem_wait (rtu->context->semaphore);
+  ModbusRtuSemWait(sensor->api, rtu);
 
   regcount =
       sensor->count * format->nbreg; // number of register to read on device
@@ -200,7 +205,7 @@ static int ModBusWriteBits(ModbusSensorT *sensor, json_object *queryJ) {
   modbus_t *ctx = (modbus_t *)rtu->context->context;
   json_object *elemJ;
   int err, idx;
-  if (rtu->context->semaphore) sem_wait (rtu->context->semaphore);
+  ModbusRtuSemWait(sensor->api, rtu);
 
   uint8_t *data8 =
       (uint8_t *)alloca(sizeof(uint8_t) * format->nbreg * sensor->count);
@@ -258,7 +263,7 @@ static int ModBusWriteRegisters(ModbusSensorT *sensor, json_object *queryJ) {
   source.sensor = sensor->uid;
   source.api = sensor->api;
   source.context = sensor->context;
-  if (rtu->context->semaphore) sem_wait (rtu->context->semaphore);
+  ModbusRtuSemWait(sensor->api, rtu);
 
   if (!format->encodeCB) {
     AFB_API_NOTICE(sensor->api, "ModBusFormatResponse: No encodeCB uid=%s",
@@ -482,7 +487,7 @@ void ModbusSensorRequest(afb_req_t request, ModbusSensorT *sensor,
     if (!sensor->function->writeCB)
       goto OnWriteError;
 
-    if (rtu->context->semaphore) sem_wait (rtu->context->semaphore);
+    ModbusRtuSemWait(sensor->api, rtu);
     err = (sensor->function->writeCB)(sensor, dataJ);
     if (rtu->context->semaphore) sem_post (rtu->context->semaphore);
 
@@ -666,9 +671,20 @@ int ModbusRtuConnect(afb_api_t api, ModbusContextT *context, const char *rtu_uid
     }
   }
 
+  // store current libmodbus ctx with rtu handle
+  context->context = (void *)ctx;
+  return 0;
+
+OnErrorExit:
+  return 1;
+}
+
+int ModbusRtuSetSlave(afb_api_t api, ModbusRtuT *rtu) {
+  modbus_t *ctx = (modbus_t *)rtu->context->context;
+
   if (rtu->slaveid) {
     if (modbus_set_slave(ctx, rtu->slaveid) == -1) {
-      AFB_API_ERROR(api, "ModbusRtuConnect: fail to set slaveid=%d uid=%s",
+      AFB_API_ERROR(api, "ModbusRtuSetSlave: fail to set slaveid=%d uid=%s",
                     rtu->slaveid, rtu->uid);
       modbus_free(ctx);
       goto OnErrorExit;
@@ -677,7 +693,7 @@ int ModbusRtuConnect(afb_api_t api, ModbusContextT *context, const char *rtu_uid
 
   if (rtu->timeout) {
     if (modbus_set_response_timeout(ctx, 0, rtu->timeout * 1000) == -1) {
-      AFB_API_ERROR(api, "ModbusRtuConnect: fail to set timeout=%d uid=%s",
+      AFB_API_ERROR(api, "ModbusRtuSetSlave: fail to set timeout=%d uid=%s",
                     rtu->timeout, rtu->uid);
       modbus_free(ctx);
       goto OnErrorExit;
@@ -686,15 +702,13 @@ int ModbusRtuConnect(afb_api_t api, ModbusContextT *context, const char *rtu_uid
 
   if (rtu->debug) {
     if (modbus_set_debug(ctx, rtu->debug) == -1) {
-      AFB_API_ERROR(api, "ModbusRtuConnect: fail to set debug=%d uid=%s",
+      AFB_API_ERROR(api, "ModbusRtuSetSlave: fail to set debug=%d uid=%s",
                     rtu->debug, rtu->uid);
       modbus_free(ctx);
       goto OnErrorExit;
     }
   }
 
-  // store current libmodbus ctx with rtu handle
-  context->context = (void *)ctx;
   return 0;
 
 OnErrorExit:
@@ -834,6 +848,13 @@ void ModbusRtuRequest(afb_req_t request, ModbusRtuT *rtu, json_object *queryJ) {
           "ModbusRtuAdmin, fail to connect: uri=%s query=%s",
           uri, json_object_get_string(queryJ));
       goto OnErrorExit;
+    } else {
+      err = ModbusRtuSetSlave(afb_req_get_api(request), rtu);
+      if (err) {
+        afb_req_reply_string_f(request, AFB_ERRNO_INTERNAL_ERROR,
+            "ModbusRtuAdmin, failed to set slave ID uri=%s query=%s",
+            uri, json_object_get_string(queryJ));
+      }
     }
 
   } else if (!strcasecmp(action, "disconnect")) {

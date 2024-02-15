@@ -171,6 +171,7 @@ typedef struct {
 void ModbusSensorRequest (afb_req_t request, ModbusSensorT *sensor, json_object *queryJ);
 void ModbusRtuRequest (afb_req_t request, ModbusRtuT *rtu, json_object *queryJ);
 int ModbusRtuConnect(afb_api_t api, ModbusContextT *context, const char *rtu_uid);
+int ModbusRtuSetSlave(afb_api_t api, ModbusRtuT *rtu);
 int ModbusRtuIsConnected (afb_api_t api, ModbusRtuT *rtu);
 ModbusFunctionCbT * mbFunctionFind (afb_api_t api, const char *uri);
 void ModbusRtuSensorsId (ModbusRtuT *rtu, int verbose, json_object *responseJ);

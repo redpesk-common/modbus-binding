@@ -347,6 +347,13 @@ static int ModbusLoadOne(afb_api_t api, ModbusRtuT *rtu, json_object *rtuJ) {
         goto OnErrorExit;
     }
   }
+  err = ModbusRtuSetSlave(api, rtu);
+  if (err) {
+    AFB_API_ERROR(api, "ModbusLoadOne: failed to set slave ID uid=%s uri=%s",
+                  rtu->uid, rtu->uid);
+    if (rtu->autostart > 1)
+      goto OnErrorExit;
+  }
 
   // loop on sensors
   if (json_object_is_type(sensorsJ, json_type_array)) {
