@@ -347,6 +347,15 @@ static int ModbusLoadOne(afb_api_t api, CtlHandleT *controller, int rtu_idx, jso
       if (rtu->autostart > 1)
         goto OnErrorExit;
     }
+  } else {
+    // else use global context/uri, which is already connected
+    if (!controller->context) {
+      AFB_API_ERROR(api, "ModbusLoadOne: RTU %s has no URI and there is no global fallback URI",
+                    rtu->uid);
+      goto OnErrorExit;
+    }
+    free(rtu->context);
+    rtu->context = controller->context;
   }
   err = ModbusRtuSetSlave(api, rtu);
   if (err) {
@@ -423,6 +432,48 @@ OnErrorExit:
   return -1;
 }
 
+static int ReadGlobalUri(afb_api_t api, CtlHandleT *controller,
+                             json_object *configJ, char *key) {
+  int err;
+  char *global_uri;
+  bool key_not_found;
+  ModbusContextT *context;
+
+  err = rp_jsonc_unpack(configJ, "{s:s}", "uri", &global_uri);
+  key_not_found = !strcmp(rp_jsonc_get_error_string(err), "key not found");
+  if (err && !key_not_found) {
+    AFB_API_ERROR(api, "ReadGlobalUri: failed to parse global URI in config");
+    goto OnErrorExit;
+  }
+
+  if (key_not_found) {
+    controller->context = NULL;
+  } else {
+    context = (ModbusContextT *)calloc(1, sizeof(ModbusContextT));
+    context->uri = global_uri;
+
+    context->semaphore = malloc(sizeof(sem_t));
+    err = sem_init(context->semaphore, 0, 1);
+    if (err < 0) {
+      AFB_API_ERROR(api, "ReadGlobalUri: failed to init semaphore");
+      goto OnErrorExit;
+    }
+
+    err = ModbusRtuConnect(api, context, "");
+    if (err) {
+      AFB_API_ERROR(api, "ReadGlobalUri: fail to connect uri=%s", context->uri);
+      goto OnErrorExit;
+    }
+
+    controller->context = context;
+  }
+
+  return 0;
+
+OnErrorExit:
+  return -1;
+}
+
 // main binding entry
 int AfbApiCtrlCb(afb_api_t rootapi, afb_ctlid_t ctlid, afb_ctlarg_t ctlarg,
                  void *userdata) {
@@ -450,6 +501,12 @@ int AfbApiCtrlCb(afb_api_t rootapi, afb_ctlid_t ctlid, afb_ctlarg_t ctlarg,
         ctl_actionset_exec(&controller->onstart, rootapi, plugins, controller);
     if (status < 0) {
       AFB_API_ERROR(rootapi, "Modbus fail register sensors actions\n");
+      goto OnErrorExit;
+    }
+
+    status = ReadGlobalUri(rootapi, controller, controller->config, "uri");
+    if (status < 0) {
+      AFB_API_ERROR(rootapi, "Modbus failed to setup global URI context");
       goto OnErrorExit;
     }
 

@@ -165,6 +165,9 @@ typedef struct {
 	/** holder for the configuration */
 	json_object *config;
 
+  /** default modbus context */
+  ModbusContextT *context;
+
 } CtlHandleT;
 
 // modbus-glue.c
