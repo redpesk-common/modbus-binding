@@ -288,10 +288,11 @@ OnErrorExit:
   return -1;
 }
 
-static int ModbusLoadOne(afb_api_t api, ModbusRtuT *rtu, json_object *rtuJ) {
+static int ModbusLoadOne(afb_api_t api, CtlHandleT *controller, int rtu_idx, json_object *rtuJ) {
   int err = 0;
   json_object *sensorsJ;
   afb_auth_t *authent = NULL;
+  ModbusRtuT *rtu = &controller->modbus[rtu_idx];
 
   // should already be allocated
   assert(rtuJ);
@@ -396,14 +397,14 @@ static int ReadModbusSection(afb_api_t api, CtlHandleT *controller,
 
     for (int idx = 0; idx < count; idx++) {
       json_object *rtuJ = json_object_array_get_idx(rtusJ, idx);
-      err = ModbusLoadOne(api, &controller->modbus[idx], rtuJ);
+      err = ModbusLoadOne(api, controller, idx, rtuJ);
       if (err)
         goto OnErrorExit;
     }
 
   } else {
     controller->modbus = (ModbusRtuT *)calloc(2, sizeof(ModbusRtuT));
-    err = ModbusLoadOne(api, &controller->modbus[0], rtusJ);
+    err = ModbusLoadOne(api, controller, 0, rtusJ);
     if (err)
       goto OnErrorExit;
   }
