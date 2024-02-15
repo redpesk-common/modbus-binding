@@ -20,12 +20,26 @@ is prefixed by the RTU uid.
 
 The `config-samples` directory contains multiple examples.
 `eastron-sdm72d.json` uses serial Modbus, the others use Ethernet
-Modbus. All the examples are not exactly ready-to-use.
+Modbus.
 
 A proper working config is actually a binder config. It should have some
 metadata as show in the "config schema" section below. You can then add
-the Modbus-specific bits in the `binding/modbus` object of the config.
-There are samples of this object in the sections after "config schema".
+the Modbus-specific bits in the `binding/modbus` array of the config (if
+there's only one, it can be directly an object instead of an array of
+one object). There are samples of this object in the sections after
+"config schema".
+
+If you want to communicate with multiple RTUs over the same serial
+link/device, you have to specify a global URI at the same level as
+`metadata` and `modbus` in the JSON config. The URI must not be present
+in the configuration section of the RTUs which should use this URI (in
+other words, the global URI is used only when no URI is specified at the
+RTU level).
+
+If you want to communicate over multiple serial links, each having
+multiple RTUs, you must run a binding instance per serial link. If other
+serial links than the global one are connected to only one RTU, you can
+keep specifying the URI in the according RTU configuration.
 
 ### modbus-binding config schema
 

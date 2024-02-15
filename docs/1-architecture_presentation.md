@@ -4,7 +4,9 @@ Modbus binding supports TCP Modbus and RTU Modbus (serial) with format
 conversion for multi-register type as int32, Float, ...
 
 Be aware that the serial implementation has a limitation: the binding
-can currently only manage one Remote Terminal Unit per tty device.
+can only manage one tty device with multiple Remote Terminal Unit
+connected to it. If you have several such serial links, you must run
+several modbus-binding instances.
 
 ![Modbus binding architecture](assets/modbus_binding_archi.png)
 
