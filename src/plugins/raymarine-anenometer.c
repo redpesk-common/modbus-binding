@@ -22,8 +22,14 @@ struct windDirectionS {
 
 // Allocate wind data once at init time
 static int initWindDirection (ModbusSourceT *source, json_object *argsJ) {
-    struct windDirectionS *ctx = malloc(sizeof(struct windDirectionS));
     json_object *tmpJ;
+    struct windDirectionS *ctx;
+
+    ctx = malloc(sizeof(struct windDirectionS));
+    if (!ctx) {
+      AFB_API_ERROR(source->api, "Raymaine initWindDirection: out of memory");
+      return -1;
+    }
     ctx->offset_angle_deg = 0;
 
     // extract 'offset' value from json sensor config args
@@ -84,6 +90,11 @@ struct windSpeedS {
 // Allocate wind speed data once at init time
 static int initWindSpeed (ModbusSourceT *source, json_object *argsJ) {
     struct windSpeedS *ctx = malloc(sizeof(struct windSpeedS));
+    if (!ctx) {
+      AFB_API_ERROR(source->api, "Raymarine initWindSpeed: out of memory");
+      return -1;
+    }
+
     ctx->old_count = 0;
     ctx->count = 0;
     ctx->delay = 0;

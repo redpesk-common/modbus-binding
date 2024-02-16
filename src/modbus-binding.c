@@ -240,6 +240,10 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor,
   sensor->api = api;
   if (privilege) {
     authent = (afb_auth_t *)calloc(1, sizeof(afb_auth_t));
+    if (!authent) {
+      AFB_API_ERROR(api, "SensorLoadOne: out of memory");
+      goto OnErrorExit;
+    }
     authent->type = afb_auth_Permission;
     authent->text = privilege;
   }
@@ -300,6 +304,11 @@ static int ModbusLoadOne(afb_api_t api, CtlHandleT *controller, int rtu_idx, jso
 
   memset(rtu, 0, sizeof(ModbusRtuT)); // default is empty
   rtu->connection = (ModbusConnectionT *)calloc(1, sizeof(ModbusConnectionT));
+  if (!rtu->connection) {
+    AFB_API_ERROR(api, "ModbusLoadOne: out of memory");
+    goto OnErrorExit;
+  }
+
   err = rp_jsonc_unpack(
       rtuJ, "{ss,s?s,s?s,s?s,s?i,s?s,s?i,s?i,s?i,s?i,s?i,s?i,so}", "uid",
       &rtu->uid, "info", &rtu->info, "uri", &rtu->connection->uri, "privileges",
@@ -316,6 +325,10 @@ static int ModbusLoadOne(afb_api_t api, CtlHandleT *controller, int rtu_idx, jso
   // create an admin command for RTU
   if (rtu->privileges) {
     authent = (afb_auth_t *)calloc(1, sizeof(afb_auth_t));
+    if (!authent) {
+      AFB_API_ERROR(api, "ModbusLoadOne: out of memory");
+      goto OnErrorExit;
+    }
     authent->type = afb_auth_Permission;
     authent->text = rtu->privileges;
   }
@@ -369,6 +382,10 @@ static int ModbusLoadOne(afb_api_t api, CtlHandleT *controller, int rtu_idx, jso
   if (json_object_is_type(sensorsJ, json_type_array)) {
     int count = (int)json_object_array_length(sensorsJ);
     rtu->sensors = (ModbusSensorT *)calloc(count + 1, sizeof(ModbusSensorT));
+    if (!rtu->sensors) {
+      AFB_API_ERROR(api, "ModbusLoadOne: out of memory");
+      goto OnErrorExit;
+    }
 
     for (int idx = 0; idx < count; idx++) {
       json_object *sensorJ = json_object_array_get_idx(sensorsJ, idx);
@@ -379,6 +396,10 @@ static int ModbusLoadOne(afb_api_t api, CtlHandleT *controller, int rtu_idx, jso
 
   } else {
     rtu->sensors = (ModbusSensorT *)calloc(2, sizeof(ModbusSensorT));
+    if (!rtu->sensors) {
+      AFB_API_ERROR(api, "ModbusLoadOne: out of memory");
+      goto OnErrorExit;
+    }
     err = SensorLoadOne(api, rtu, &rtu->sensors[0], sensorsJ);
     if (err)
       goto OnErrorExit;
@@ -403,6 +424,10 @@ static int ReadModbusSection(afb_api_t api, CtlHandleT *controller,
   if (json_object_is_type(rtusJ, json_type_array)) {
     int count = (int)json_object_array_length(rtusJ);
     controller->modbus = (ModbusRtuT *)calloc(count + 1, sizeof(ModbusRtuT));
+    if (!controller->modbus) {
+      AFB_API_ERROR(api, "ReadModbusSection: out of memory");
+      goto OnErrorExit;
+    }
 
     for (int idx = 0; idx < count; idx++) {
       json_object *rtuJ = json_object_array_get_idx(rtusJ, idx);
@@ -413,6 +438,10 @@ static int ReadModbusSection(afb_api_t api, CtlHandleT *controller,
 
   } else {
     controller->modbus = (ModbusRtuT *)calloc(2, sizeof(ModbusRtuT));
+    if (!controller->modbus) {
+      AFB_API_ERROR(api, "ReadModbusSection: out of memory");
+      goto OnErrorExit;
+    }
     err = ModbusLoadOne(api, controller, 0, rtusJ);
     if (err)
       goto OnErrorExit;
@@ -450,9 +479,17 @@ static int ReadGlobalUri(afb_api_t api, CtlHandleT *controller,
     controller->connection = NULL;
   } else {
     connection = (ModbusConnectionT *)calloc(1, sizeof(ModbusConnectionT));
+    if (!connection) {
+      AFB_API_ERROR(api, "ReadGlobalUri: out of memory");
+      goto OnErrorExit;
+    }
     connection->uri = global_uri;
 
     connection->semaphore = malloc(sizeof(sem_t));
+    if (!connection->semaphore) {
+      AFB_API_ERROR(api, "ReadGlobalUri: out of memory");
+      goto OnErrorExit;
+    }
     err = sem_init(connection->semaphore, 0, 1);
     if (err < 0) {
       AFB_API_ERROR(api, "ReadGlobalUri: failed to init semaphore");
@@ -547,9 +584,14 @@ OnErrorExit:
 
 static int initialize_codecs_of_plugins(void *closure, const plugin_t *plugin)
 {
+  int err;
 	ModbusFormatCbT *codecs = plugin_get_object(plugin, "modbusFormats");
 	if (codecs != NULL)
-		mbEncoderRegister(plugin_name(plugin), codecs);
+		err = mbEncoderRegister(plugin_name(plugin), codecs);
+    if (err) {
+      AFB_ERROR("initialize_codecs_of_plugins: failed to register encoders");
+      return -1;
+    }
 	return 0;
 }
 
@@ -559,6 +601,10 @@ static CtlHandleT *ReadConfig(afb_api_t rootapi, json_object *configJ) {
 
   /* allocates */
   CtlHandleT *controller = calloc(1, sizeof *controller);
+  if (!controller) {
+    AFB_API_ERROR(api, "ReadConfig: out of memory");
+    goto OnErrorExit;
+  }
   if (controller == NULL) {
     AFB_ERROR("out of memory");
     goto OnErrorExit;
@@ -608,6 +654,7 @@ OnErrorExit:
 // main entry is called right after binding is loaded with dlopen
 int afbBindingV4entry(afb_api_t rootapi, afb_ctlid_t ctlid, afb_ctlarg_t ctlarg,
                       void *api_data) {
+  int err;
 
   if (ctlid != afb_ctlid_Root_Entry)
     goto OnErrorExit;
@@ -623,7 +670,11 @@ int afbBindingV4entry(afb_api_t rootapi, afb_ctlid_t ctlid, afb_ctlarg_t ctlarg,
   }
 
   // register core encoders
-  mbRegisterCoreEncoders();
+  err = mbRegisterCoreEncoders();
+  if (err) {
+    AFB_API_ERROR(rootapi, "Failed to register core encoders");
+    goto OnErrorExit;
+  }
 
   // process modbus controller config
   CtlHandleT *controller = ReadConfig(rootapi, config);

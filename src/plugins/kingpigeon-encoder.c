@@ -78,6 +78,10 @@ NoResponse:
 // Alocate counter handle once at init time
 static int initRCount (ModbusSourceT *source, json_object *argsJ) {
     rCountT * ctx = malloc (sizeof(rCountT));
+    if (!ctx) {
+      AFB_API_ERROR(source->api, "Kingpigeon initRCount: out of memory");
+      return -1;
+    }
     json_object *tmpJ;
     ctx->step = 1; // default value
     ctx->previous = 0; // never used

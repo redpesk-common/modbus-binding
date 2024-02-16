@@ -37,11 +37,15 @@ typedef struct modbusRegistryS {
 static modbusRegistryT *registryHead = NULL;
 
 // add a new plugin encoder to the registry
-void mbEncoderRegister (const char *uid, ModbusFormatCbT *encoderCB) {
+int mbEncoderRegister (const char *uid, ModbusFormatCbT *encoderCB) {
     modbusRegistryT *registryIdx, *registryEntry;
 
     // create holding hat for encoder/decoder CB
     registryEntry= (modbusRegistryT*) calloc (1, sizeof(modbusRegistryT));
+    if (!registryEntry) {
+        AFB_ERROR("mbEncoderRegister: out of memory");
+        return -1;
+    }
     registryEntry->uid = uid;
     registryEntry->formats = encoderCB;
 
@@ -53,6 +57,8 @@ void mbEncoderRegister (const char *uid, ModbusFormatCbT *encoderCB) {
         for (registryIdx= registryHead; registryIdx->next; registryIdx=registryIdx->next);
         registryIdx->next = registryEntry;
     }
+
+    return 0;
 }
 
 // find on format encoder/decoder within one plugin
@@ -329,9 +335,14 @@ static ModbusFormatCbT coreEncodersCB[] = {
 };
 
 // register callback and use it to register core encoders
-void mbRegisterCoreEncoders (void) {
-
+int mbRegisterCoreEncoders (void) {
+  int err;
   // Builtin Encoder don't have UID
-  mbEncoderRegister (NULL, coreEncodersCB);
+  err = mbEncoderRegister (NULL, coreEncodersCB);
+  if (err) {
+    AFB_ERROR("mbRegisterCoreEncoders: failed to register encoders");
+    return -1;
+  }
 
+  return 0;
 }

@@ -100,8 +100,13 @@ static int ModBusReadBits(ModbusSensorT *sensor, json_object **responseJ) {
 
   // allocate input buffer on 1st read (all buffer are in 16bit for event diff
   // processing)
-  if (!sensor->buffer)
+  if (!sensor->buffer) {
     sensor->buffer = (uint16_t *)calloc(sensor->count, sizeof(uint16_t));
+    if (!sensor->buffer) {
+      AFB_API_ERROR(sensor->api, "ModbusReadBits: out of memory");
+      goto OnErrorExit;
+    }
+  }
   uint8_t *data8 = (uint8_t *)sensor->buffer;
 
   switch (function->type) {
@@ -155,8 +160,13 @@ static int ModBusReadRegisters(ModbusSensorT *sensor, json_object **responseJ) {
       sensor->count * format->nbreg; // number of register to read on device
 
   // allocate input buffer on 1st read
-  if (!sensor->buffer)
+  if (!sensor->buffer) {
     sensor->buffer = (uint16_t *)calloc(regcount, sizeof(uint16_t));
+    if (!sensor->buffer) {
+      AFB_API_ERROR(sensor->api, "ModbusReadRegisters: out of memory");
+      goto OnErrorExit;
+    }
+  }
 
   switch (function->type) {
   case MB_REGISTER_INPUT:
@@ -434,11 +444,19 @@ static int ModbusSensorEventCreate(ModbusSensorT *sensor,
     }
 
     mbEvtHandle = (ModbusEvtT *)calloc(1, sizeof(ModbusEvtT));
+    if (!mbEvtHandle) {
+      AFB_API_ERROR(sensor->api, "ModbusSensorEventCreate: out of memory");
+      goto OnErrorExit;
+    }
     mbEvtHandle->sensor = sensor;
     mbEvtHandle->idle = sensor->idle;
     mbEvtHandle->buffer =
         (uint16_t *)calloc(sensor->format->nbreg * sensor->count,
                            sizeof(uint16_t)); // keep track of old value
+    if (!mbEvtHandle->buffer) {
+      AFB_API_ERROR(sensor->api, "ModbusSensorEventCreate: out of memory");
+      goto OnErrorExit;
+    }
     err = afb_timer_create(&sensor->timer, 0, 0, 0,
                            0, // run forever,
                            (uint)1000 / rtu->hertz, 0, ModbusTimerCallback,
@@ -646,6 +664,10 @@ int ModbusRtuConnect(afb_api_t api, ModbusConnectionT *connection, const char *r
 
     // serial link do not support simultaneous read
     connection->semaphore = malloc (sizeof(sem_t));
+    if (!connection->semaphore) {
+      AFB_API_ERROR(api, "ModbusRtuConnect: out of memory");
+      goto OnErrorExit;
+    }
     int err = sem_init(connection->semaphore, 0, 1);
     if (err < 0) {
         AFB_API_ERROR(api, "ModbusRtuConnect: fail to init tty semaphore uid=%s uri=%s",
