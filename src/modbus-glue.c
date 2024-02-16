@@ -31,7 +31,7 @@
 #include <netdb.h>
 #include <sys/socket.h>
 
-static int ModBusFormatResponse(ModbusSensorT *sensor,
+static int ModbusFormatResponse(ModbusSensorT *sensor,
                                 json_object **responseJ) {
   ModbusFormatCbT *format = sensor->format;
   ModbusSourceT source;
@@ -39,7 +39,7 @@ static int ModBusFormatResponse(ModbusSensorT *sensor,
   int err;
 
   if (!format->decodeCB) {
-    AFB_API_NOTICE(sensor->api, "ModBusFormatResponse: No decodeCB uid=%s",
+    AFB_API_NOTICE(sensor->api, "ModbusFormatResponse: No decodeCB uid=%s",
                    sensor->uid);
     goto OnErrorExit;
   }
@@ -91,7 +91,7 @@ static int ModbusRtuSemWait(afb_api_t api, ModbusRtuT *rtu) {
   return ModbusRtuSetSlave(api, rtu);
 }
 
-static int ModBusReadBits(ModbusSensorT *sensor, json_object **responseJ) {
+static int ModbusReadBits(ModbusSensorT *sensor, json_object **responseJ) {
   ModbusFunctionCbT *function = sensor->function;
   ModbusRtuT *rtu = sensor->rtu;
   modbus_t *ctx = (modbus_t *)rtu->connection->context;
@@ -129,7 +129,7 @@ static int ModBusReadBits(ModbusSensorT *sensor, json_object **responseJ) {
 
   // if responseJ is provided build JSON response
   if (responseJ) {
-    err = ModBusFormatResponse(sensor, responseJ);
+    err = ModbusFormatResponse(sensor, responseJ);
     if (err)
       goto OnErrorExit;
   }
@@ -139,7 +139,7 @@ static int ModBusReadBits(ModbusSensorT *sensor, json_object **responseJ) {
 
 OnErrorExit:
   AFB_API_ERROR(sensor->api,
-                "ModBusReadBit: fail to read rtu=%s sensor=%s error=%s",
+                "ModbusReadBit: fail to read rtu=%s sensor=%s error=%s",
                 rtu->uid, sensor->uid, modbus_strerror(errno));
   if (err == -1)
     ModbusReconnect(sensor);
@@ -148,7 +148,7 @@ OnErrorExit:
   return 1;
 }
 
-static int ModBusReadRegisters(ModbusSensorT *sensor, json_object **responseJ) {
+static int ModbusReadRegisters(ModbusSensorT *sensor, json_object **responseJ) {
   ModbusFunctionCbT *function = sensor->function;
   ModbusFormatCbT *format = sensor->format;
   ModbusRtuT *rtu = sensor->rtu;
@@ -190,7 +190,7 @@ static int ModBusReadRegisters(ModbusSensorT *sensor, json_object **responseJ) {
 
   // if responseJ is provided build JSON response
   if (responseJ) {
-    err = ModBusFormatResponse(sensor, responseJ);
+    err = ModbusFormatResponse(sensor, responseJ);
     if (err)
       goto OnErrorExit;
   }
@@ -200,7 +200,7 @@ static int ModBusReadRegisters(ModbusSensorT *sensor, json_object **responseJ) {
 
 OnErrorExit:
   AFB_API_ERROR(sensor->api,
-                "ModBusReadRegisters: fail to read rtu=%s sensor=%s error=%s",
+                "ModbusReadRegisters: fail to read rtu=%s sensor=%s error=%s",
                 rtu->uid, sensor->uid, modbus_strerror(errno));
   if (err == -1)
     ModbusReconnect(sensor);
@@ -209,7 +209,7 @@ OnErrorExit:
   return 1;
 }
 
-static int ModBusWriteBits(ModbusSensorT *sensor, json_object *queryJ) {
+static int ModbusWriteBits(ModbusSensorT *sensor, json_object *queryJ) {
   ModbusFormatCbT *format = sensor->format;
   ModbusRtuT *rtu = sensor->rtu;
   modbus_t *ctx = (modbus_t *)rtu->connection->context;
@@ -247,7 +247,7 @@ static int ModBusWriteBits(ModbusSensorT *sensor, json_object *queryJ) {
 OnErrorExit:
   AFB_API_ERROR(
       sensor->api,
-      "ModBusWriteBits: fail to write rtu=%s sensor=%s error=%s data=%s",
+      "ModbusWriteBits: fail to write rtu=%s sensor=%s error=%s data=%s",
       rtu->uid, sensor->uid, modbus_strerror(errno),
       json_object_get_string(queryJ));
   if (err == -1)
@@ -257,7 +257,7 @@ OnErrorExit:
   return 1;
 }
 
-static int ModBusWriteRegisters(ModbusSensorT *sensor, json_object *queryJ) {
+static int ModbusWriteRegisters(ModbusSensorT *sensor, json_object *queryJ) {
   ModbusFormatCbT *format = sensor->format;
   ModbusRtuT *rtu = sensor->rtu;
   modbus_t *ctx = (modbus_t *)rtu->connection->context;
@@ -276,7 +276,7 @@ static int ModBusWriteRegisters(ModbusSensorT *sensor, json_object *queryJ) {
   ModbusRtuSemWait(sensor->api, rtu);
 
   if (!format->encodeCB) {
-    AFB_API_NOTICE(sensor->api, "ModBusFormatResponse: No encodeCB uid=%s",
+    AFB_API_NOTICE(sensor->api, "ModbusFormatResponse: No encodeCB uid=%s",
                    sensor->uid);
     goto OnErrorExit;
   }
@@ -317,7 +317,7 @@ static int ModBusWriteRegisters(ModbusSensorT *sensor, json_object *queryJ) {
 OnErrorExit:
   AFB_API_ERROR(
       sensor->api,
-      "ModBusWriteBits: fail to write rtu=%s sensor=%s error=%s data=%s",
+      "ModbusWriteBits: fail to write rtu=%s sensor=%s error=%s data=%s",
       rtu->uid, sensor->uid, modbus_strerror(errno),
       json_object_get_string(queryJ));
   if (err == -1)
@@ -331,23 +331,23 @@ static ModbusFunctionCbT ModbusFunctionsCB[] = {
     {.uid = "COIL_INPUT",
      .type = MB_COIL_INPUT,
      .info = "Boolean ReadOnly register",
-     .readCB = ModBusReadBits,
+     .readCB = ModbusReadBits,
      .writeCB = NULL},
     {.uid = "COIL_HOLDING",
      .type = MB_COIL_STATUS,
      .info = "Boolean ReadWrite register",
-     .readCB = ModBusReadBits,
-     .writeCB = ModBusWriteBits},
+     .readCB = ModbusReadBits,
+     .writeCB = ModbusWriteBits},
     {.uid = "REGISTER_INPUT",
      .type = MB_REGISTER_INPUT,
      .info = "INT16 ReadOnly register",
-     .readCB = ModBusReadRegisters,
+     .readCB = ModbusReadRegisters,
      .writeCB = NULL},
     {.uid = "REGISTER_HOLDING",
      .type = MB_REGISTER_HOLDING,
      .info = "INT16 ReadWrite register",
-     .readCB = ModBusReadRegisters,
-     .writeCB = ModBusWriteRegisters},
+     .readCB = ModbusReadRegisters,
+     .writeCB = ModbusWriteRegisters},
 
     {.uid = NULL} // should be NULL terminated
 };
@@ -390,7 +390,7 @@ static void ModbusTimerCallback(afb_timer_t timer, void *userdata,
       !--context->idle) {
 
     // if responseJ is provided build JSON response
-    err = ModBusFormatResponse(sensor, &responseJ);
+    err = ModbusFormatResponse(sensor, &responseJ);
     if (err)
       goto OnErrorExit;
 
