@@ -81,16 +81,16 @@ static void InfoRtu(afb_req_t request, unsigned argc, afb_data_t const args[]) {
       case 1:
       default:
         rp_jsonc_pack(&elemJ, "{ss ss ss}", "uid", rtus[idx].uid, "uri",
-                      rtus[idx].context->uri, "info", rtus[idx].info);
+                      rtus[idx].connection->uri, "info", rtus[idx].info);
         break;
       case 2:
         status = ModbusRtuIsConnected(afb_req_get_api(request), &rtus[idx]);
         if (status < 0) {
           rp_jsonc_pack(&elemJ, "{ss ss ss}", "uid", rtus[idx].uid, "uri",
-                        rtus[idx].context->uri, "info", rtus[idx].info);
+                        rtus[idx].connection->uri, "info", rtus[idx].info);
         } else {
           rp_jsonc_pack(&elemJ, "{ss ss ss sb}", "uid", rtus[idx].uid, "uri",
-                        rtus[idx].context->uri, "info", rtus[idx].info, "status", status);
+                        rtus[idx].connection->uri, "info", rtus[idx].info, "status", status);
         }
         break;
       }
@@ -104,7 +104,7 @@ static void InfoRtu(afb_req_t request, unsigned argc, afb_data_t const args[]) {
     rtusJ = json_object_new_array();
     for (idx = 0; rtus[idx].uid; idx++) {
       status = ModbusRtuIsConnected(afb_req_get_api(request), &rtus[idx]);
-      err = rp_jsonc_pack(&statusJ, "{ss si sb}", "uri", rtus[idx].context->uri,
+      err = rp_jsonc_pack(&statusJ, "{ss si sb}", "uri", rtus[idx].connection->uri,
                           "slaveid", rtus[idx].slaveid, "status", status >= 0);
 
       // prepare array to hold every sensor verbs
@@ -299,10 +299,10 @@ static int ModbusLoadOne(afb_api_t api, CtlHandleT *controller, int rtu_idx, jso
   assert(api);
 
   memset(rtu, 0, sizeof(ModbusRtuT)); // default is empty
-  rtu->context = (ModbusContextT *)calloc(1, sizeof(ModbusContextT));
+  rtu->connection = (ModbusConnectionT *)calloc(1, sizeof(ModbusConnectionT));
   err = rp_jsonc_unpack(
       rtuJ, "{ss,s?s,s?s,s?s,s?i,s?s,s?i,s?i,s?i,s?i,s?i,s?i,so}", "uid",
-      &rtu->uid, "info", &rtu->info, "uri", &rtu->context->uri, "privileges",
+      &rtu->uid, "info", &rtu->info, "uri", &rtu->connection->uri, "privileges",
       &rtu->privileges, "autostart", &rtu->autostart, "prefix", &rtu->prefix,
       "slaveid", &rtu->slaveid, "debug", &rtu->debug, "timeout", &rtu->timeout,
       "idlen", &rtu->idlen, "hertz", &rtu->hertz, "idle", &rtu->idle, "sensors",
@@ -339,8 +339,8 @@ static int ModbusLoadOne(afb_api_t api, CtlHandleT *controller, int rtu_idx, jso
   }
 
   // if uri is provided let's try to connect now
-  if (rtu->context->uri && rtu->autostart) {
-    err = ModbusRtuConnect(api, rtu->context, rtu->uid);
+  if (rtu->connection->uri && rtu->autostart) {
+    err = ModbusRtuConnect(api, rtu->connection, rtu->uid);
     if (err) {
       AFB_API_ERROR(api, "ModbusLoadOne: fail to connect TTY/RTU uid=%s uri=%s",
                     rtu->uid, rtu->uid);
@@ -349,13 +349,13 @@ static int ModbusLoadOne(afb_api_t api, CtlHandleT *controller, int rtu_idx, jso
     }
   } else {
     // else use global context/uri, which is already connected
-    if (!controller->context) {
+    if (!controller->connection) {
       AFB_API_ERROR(api, "ModbusLoadOne: RTU %s has no URI and there is no global fallback URI",
                     rtu->uid);
       goto OnErrorExit;
     }
-    free(rtu->context);
-    rtu->context = controller->context;
+    free(rtu->connection);
+    rtu->connection = controller->connection;
   }
   err = ModbusRtuSetSlave(api, rtu);
   if (err) {
@@ -437,7 +437,7 @@ static int ReadGlobalUri(afb_api_t api, CtlHandleT *controller,
   int err;
   char *global_uri;
   bool key_not_found;
-  ModbusContextT *context;
+  ModbusConnectionT *connection;
 
   err = rp_jsonc_unpack(configJ, "{s:s}", "uri", &global_uri);
   key_not_found = !strcmp(rp_jsonc_get_error_string(err), "key not found");
@@ -447,25 +447,25 @@ static int ReadGlobalUri(afb_api_t api, CtlHandleT *controller,
   }
 
   if (key_not_found) {
-    controller->context = NULL;
+    controller->connection = NULL;
   } else {
-    context = (ModbusContextT *)calloc(1, sizeof(ModbusContextT));
-    context->uri = global_uri;
+    connection = (ModbusConnectionT *)calloc(1, sizeof(ModbusConnectionT));
+    connection->uri = global_uri;
 
-    context->semaphore = malloc(sizeof(sem_t));
-    err = sem_init(context->semaphore, 0, 1);
+    connection->semaphore = malloc(sizeof(sem_t));
+    err = sem_init(connection->semaphore, 0, 1);
     if (err < 0) {
       AFB_API_ERROR(api, "ReadGlobalUri: failed to init semaphore");
       goto OnErrorExit;
     }
 
-    err = ModbusRtuConnect(api, context, "");
+    err = ModbusRtuConnect(api, connection, "");
     if (err) {
-      AFB_API_ERROR(api, "ReadGlobalUri: fail to connect uri=%s", context->uri);
+      AFB_API_ERROR(api, "ReadGlobalUri: fail to connect uri=%s", connection->uri);
       goto OnErrorExit;
     }
 
-    controller->context = context;
+    controller->connection = connection;
   }
 
   return 0;

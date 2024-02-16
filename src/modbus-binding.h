@@ -65,7 +65,7 @@ typedef enum {
 typedef struct ModbusSensorS ModbusSensorT;
 typedef struct ModbusFunctionCbS ModbusFunctionCbT;
 typedef struct ModbusRtuS ModbusRtuT;
-typedef struct ModbusContextS ModbusContextT;
+typedef struct ModbusConnectionS ModbusConnectionT;
 typedef struct ModbusEncoderCbS ModbusFormatCbT;
 typedef struct ModbusSourceS ModbusSourceT;
 
@@ -85,7 +85,7 @@ struct ModbusSourceS {
   void *context;
 };
 
-struct ModbusContextS {
+struct ModbusConnectionS {
   void *context;
   sem_t *semaphore;
   const char *uri;
@@ -104,7 +104,7 @@ struct ModbusRtuS {
   uint hertz;  // default pooling frequency when subscribing to sensors
   const uint idlen;  // no default for slaveid len but use 1 when nothing given
   const uint autostart;  // 0=no 1=try 2=mandatory
-  ModbusContextT *context;
+  ModbusConnectionT *connection;
 
   ModbusSensorT *sensors;
 };
@@ -165,15 +165,15 @@ typedef struct {
 	/** holder for the configuration */
 	json_object *config;
 
-  /** default modbus context */
-  ModbusContextT *context;
+  /** default modbus connection */
+  ModbusConnectionT *connection;
 
 } CtlHandleT;
 
 // modbus-glue.c
 void ModbusSensorRequest (afb_req_t request, ModbusSensorT *sensor, json_object *queryJ);
 void ModbusRtuRequest (afb_req_t request, ModbusRtuT *rtu, json_object *queryJ);
-int ModbusRtuConnect(afb_api_t api, ModbusContextT *context, const char *rtu_uid);
+int ModbusRtuConnect(afb_api_t api, ModbusConnectionT *connection, const char *rtu_uid);
 int ModbusRtuSetSlave(afb_api_t api, ModbusRtuT *rtu);
 int ModbusRtuIsConnected (afb_api_t api, ModbusRtuT *rtu);
 ModbusFunctionCbT * mbFunctionFind (afb_api_t api, const char *uri);
