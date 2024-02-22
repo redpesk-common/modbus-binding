@@ -809,6 +809,12 @@ int ModbusRtuIsConnected(afb_api_t api, ModbusRtuT *rtu) {
   modbus_t *ctx = (modbus_t *)rtu->connection->context;
   int run;
 
+  if (ModbusRtuSetSlave(api, rtu)) {
+    AFB_API_ERROR(api, "ModbusLoadOne: failed to set slave ID uid=%s uri=%s",
+                  rtu->uid, rtu->connection->uri);
+    goto OnErrorExit;
+  }
+
   run = modbus_report_slave_id(ctx, sizeof(response), response);
   if (run < 0) {
     // handle case where RTU does not support "Report Server ID"
