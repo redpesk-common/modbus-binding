@@ -218,7 +218,7 @@ static int ModbusWriteBits(ModbusSensorT *sensor, json_object *queryJ) {
   ModbusRtuSemWait(sensor->api, rtu);
 
   uint8_t *data8 =
-      (uint8_t *)alloca(sizeof(uint8_t) * format->nbreg * sensor->count);
+      (uint8_t *)alloca(sizeof(uint8_t) * sensor->count);
 
   if (!json_object_is_type(queryJ, json_type_array)) {
     data8[0] = (uint8_t)json_object_get_boolean(queryJ);
@@ -230,14 +230,14 @@ static int ModbusWriteBits(ModbusSensorT *sensor, json_object *queryJ) {
       goto OnErrorExit;
 
   } else {
-    for (idx = 0; idx < sensor->format->nbreg; idx++) {
+    for (idx = 0; idx < sensor->count; idx++) {
       elemJ = json_object_array_get_idx(queryJ, idx);
       data8[idx] = (uint8_t)json_object_get_boolean(elemJ);
     }
     err = modbus_write_bits(
-        ctx, sensor->registry, sensor->format->nbreg,
+        ctx, sensor->registry, sensor->count,
         data8); // Modbus function code 0x0F (force multiple coils).
-    if (err != sensor->format->nbreg)
+    if (err != sensor->count)
       goto OnErrorExit;
   }
 
