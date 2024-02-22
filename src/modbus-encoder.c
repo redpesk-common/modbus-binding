@@ -280,6 +280,22 @@ OnErrorExit:
     return 1;
 }
 
+static int mbDecodeUInt16(ModbusSourceT *source, ModbusFormatCbT *format, uint16_t *data, uint index, json_object **responseJ) {
+    *responseJ = json_object_new_int(data[index*format->nbreg]);
+    return 0;
+}
+
+static int mbEncodeUInt16(ModbusSourceT *source, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
+   if (!json_object_is_type (sourceJ, json_type_int)) goto OnErrorExit;
+   uint16_t value = (uint16_t)json_object_get_int(sourceJ);
+
+   *response[index*format->nbreg] = value;
+   return 0;
+
+OnErrorExit:
+    AFB_API_ERROR(source->api, "mbEncodeUInt16: [%s] not an integer", json_object_get_string (sourceJ));
+    return 1;
+}
 
 static int mbDecodeInt16 (ModbusSourceT *source, ModbusFormatCbT *format, uint16_t *data, uint index, json_object **responseJ) {
 
@@ -323,6 +339,7 @@ OnErrorExit:
 static ModbusFormatCbT coreEncodersCB[] = {
   {.uid="BOOL"      , .info="json_boolean", .nbreg=1, .decodeCB=mbDecodeBoolean, .encodeCB=mbEncodeBoolean},
   {.uid="INT16"     , .info="json_integer", .nbreg=1, .decodeCB=mbDecodeInt16  , .encodeCB=mbEncodeInt16},
+  {.uid="UINT16"    , .info="json_integer", .nbreg=1, .decodeCB=mbDecodeUInt16 , .encodeCB=mbEncodeUInt16},
   {.uid="INT32"     , .info="json_integer", .nbreg=2, .decodeCB=mbDecodeInt32  , .encodeCB=mbEncodeInt32},
   {.uid="UINT32"    , .info="json_integer", .nbreg=2, .decodeCB=mbDecodeUInt32 , .encodeCB=mbEncodeUInt32},
   {.uid="INT64"     , .info="json_integer", .nbreg=2, .decodeCB=mbDecodeInt64  , .encodeCB=mbEncodeInt64},
