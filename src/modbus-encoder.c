@@ -281,7 +281,7 @@ OnErrorExit:
 }
 
 
-int mbDecodeInt16 (ModbusSourceT *source, ModbusFormatCbT *format, uint16_t *data, uint index, json_object **responseJ) {
+static int mbDecodeInt16 (ModbusSourceT *source, ModbusFormatCbT *format, uint16_t *data, uint index, json_object **responseJ) {
 
     *responseJ = json_object_new_int (data[index*format->nbreg]);
     return 0;
@@ -300,9 +300,10 @@ OnErrorExit:
     return 1;
 }
 
-int mbDecodeBoolean (ModbusSourceT *source, ModbusFormatCbT *format, uint16_t *data, uint index, json_object **responseJ) {
+static int mbDecodeBoolean (ModbusSourceT *source, ModbusFormatCbT *format, uint16_t *data, uint index, json_object **responseJ) {
 
-    *responseJ = json_object_new_boolean (data[index*format->nbreg]);
+    uint8_t* data8 = (uint8_t*)data;
+    *responseJ = json_object_new_boolean (data8[index*format->nbreg]);
     return 0;
 }
 
