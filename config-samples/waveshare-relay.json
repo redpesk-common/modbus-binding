@@ -1,0 +1,150 @@
+{
+    "binding": ["/usr/redpesk/modbus-binding/lib/modbus-binding.so"],
+    "set": {
+        "modbus-binding.so": {
+            "metadata": {
+                "uid": "modbus",
+                "version": "1.0",
+                "api": "modbus",
+                "info": "Generic Waveshare 8ch relay test config"
+            },
+            "reference": "https://www.waveshare.com/wiki/Modbus_RTU_Relay",
+            "modbus": {
+                "uid": "Waveshare-Relay",
+                "info": "8 channels relay module",
+                "uri": "tty://tmp/interceptty:9600",
+                "prefix": "WS8RL",
+                "slaveid": 1,
+                "timeout": 250,
+                "autostart": 1,
+                "privilege": "global privilege",
+                "hertz": 1,
+                "sensors": [
+                    {
+                        "uid": "RELAY_0",
+                        "info": "Control first relay",
+                        "type": "COIL_HOLDING",
+                        "format" : "INT16",
+                        "register": 0,
+                        "usage": {"action": ["write"], "data": "json_integer"},
+                        "sample": [
+                            {"action": "write", "data": 65280},
+                            {"action": "write", "data": 0}
+                        ]
+                    },
+                    {
+                        "uid": "RELAY_1",
+                        "info": "Control second relay",
+                        "type": "COIL_HOLDING",
+                        "format" : "INT16",
+                        "register": 1,
+                        "usage": {"action": ["write"], "data": "json_integer"},
+                        "sample": [
+                            {"action": "write", "data": 65280},
+                            {"action": "write", "data": 0}
+                        ]
+                    },
+                    {
+                        "uid": "RELAY_2",
+                        "info": "Control third relay",
+                        "type": "COIL_HOLDING",
+                        "format" : "INT16",
+                        "register": 2,
+                        "usage": {"action": ["write"], "data": "json_integer"},
+                        "sample": [
+                            {"action": "write", "data": 65280},
+                            {"action": "write", "data": 0}
+                        ]
+                    },
+                    {
+                        "uid": "RELAY_3",
+                        "info": "Control fourth relay",
+                        "type": "COIL_HOLDING",
+                        "format" : "INT16",
+                        "register": 3,
+                        "usage": {"action": ["write"], "data": "json_integer"},
+                        "sample": [
+                            {"action": "write", "data": 65280},
+                            {"action": "write", "data": 0}
+                        ]
+                    },
+                    {
+                        "uid": "RELAY_4",
+                        "info": "Control fifth relay",
+                        "type": "COIL_HOLDING",
+                        "format" : "INT16",
+                        "register": 4,
+                        "usage": {"action": ["write"], "data": "json_integer"},
+                        "sample": [
+                            {"action": "write", "data": 65280},
+                            {"action": "write", "data": 0}
+                        ]
+                    },
+                    {
+                        "uid": "RELAY_5",
+                        "info": "Control sixth relay",
+                        "type": "COIL_HOLDING",
+                        "format" : "INT16",
+                        "register": 5,
+                        "usage": {"action": ["write"], "data": "json_integer"},
+                        "sample": [
+                            {"action": "write", "data": 65280},
+                            {"action": "write", "data": 0}
+                        ]
+                    },
+                    {
+                        "uid": "RELAY_6",
+                        "info": "Control seventh relay",
+                        "type": "COIL_HOLDING",
+                        "format" : "INT16",
+                        "register": 6,
+                        "usage": {"action": ["write"], "data": "json_integer"},
+                        "sample": [
+                            {"action": "write", "data": 65280},
+                            {"action": "write", "data": 0}
+                        ]
+                    },
+                    {
+                        "uid": "RELAY_7",
+                        "info": "Control eighth relay",
+                        "type": "COIL_HOLDING",
+                        "format" : "INT16",
+                        "register": 7,
+                        "usage": {"action": ["write"], "data": "json_integer"},
+                        "sample": [
+                            {"action": "write", "data": 65280},
+                            {"action": "write", "data": 0}
+                        ]
+                    },
+                    {
+                        "uid": "RELAY_ALL",
+                        "info": "Control all relays",
+                        "type": "COIL_HOLDING",
+                        "format": "UINT16",
+                        "register": 255,
+                        "usage": {"action": ["write"], "data": "json_type_boolean"},
+                        "sample": [
+                            {"action": "write", "data": 1},
+                            {"action": "write", "data": 0}
+                        ]
+                    },
+                    {
+                        "uid": "RELAY_STATE",
+                        "info": "Read states of relays",
+                        "type": "COIL_HOLDING",
+                        "format": "BOOL",
+                        "register": 0,
+                        "count": 8,
+                        "usage": {
+                            "action": ["read", "subscribe", "unsubscribe", "write"],
+                            "data": ["json_boolean", "json_boolean", "json_boolean", "json_boolean", "json_boolean", "json_boolean", "json_boolean", "json_boolean"]
+                        },
+                        "sample": [
+                            {"action": "write", "data": [true, false, true, false, true, false, true, false]}
+                        ]
+                    }
+                ]
+            }
+        }
+    }
+}
