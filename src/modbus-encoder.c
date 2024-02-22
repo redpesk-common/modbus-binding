@@ -222,7 +222,7 @@ static int mbEncodeFloat64(ModbusSourceT *source, ModbusFormatCbT *format, json_
     return 0;
 
 OnErrorExit:
-    AFB_API_ERROR(source->api, "mbDecodeFloatABCD: format='%s' value='%s' not a double/float ", format->uid, json_object_get_string (sourceJ));
+    AFB_API_ERROR(source->api, "mbEncodeFloat64: format='%s' value='%s' not a double/float ", format->uid, json_object_get_string (sourceJ));
     return 1;
 }
 
@@ -240,7 +240,7 @@ static int mbEncodeInt64(ModbusSourceT *source, ModbusFormatCbT *format, json_ob
    return 0;
 
 OnErrorExit:
-    AFB_API_ERROR(source->api, "mbDecodeInt64: [%s] not an interger", json_object_get_string (sourceJ));
+    AFB_API_ERROR(source->api, "mbDecodeInt64: [%s] not an integer", json_object_get_string (sourceJ));
     return 1;
 }
 
@@ -258,10 +258,9 @@ static int mbEncodeUInt32(ModbusSourceT *source, ModbusFormatCbT *format, json_o
    return 0;
 
 OnErrorExit:
-    AFB_API_ERROR(source->api, "mbDecodeInt16: [%s] not an interger", json_object_get_string (sourceJ));
+    AFB_API_ERROR(source->api, "mbDecodeInt16: [%s] not an integer", json_object_get_string (sourceJ));
     return 1;
 }
-
 
 static int mbDecodeInt32 (ModbusSourceT *source, ModbusFormatCbT *format, uint16_t *data, uint index, json_object **responseJ) {
     int32_t value= MODBUS_GET_INT32_FROM_INT16(data, index*format->nbreg);
@@ -277,7 +276,7 @@ static int mbEncodeInt32(ModbusSourceT *source, ModbusFormatCbT *format, json_ob
    return 0;
 
 OnErrorExit:
-    AFB_API_ERROR(source->api, "mbDecodeInt16: [%s] not an interger", json_object_get_string (sourceJ));
+    AFB_API_ERROR(source->api, "mbDecodeInt16: [%s] not an integer", json_object_get_string (sourceJ));
     return 1;
 }
 
@@ -297,7 +296,7 @@ static int mbEncodeInt16(ModbusSourceT *source, ModbusFormatCbT *format, json_ob
    return 0;
 
 OnErrorExit:
-    AFB_API_ERROR(source->api, "mbDecodeInt16: [%s] not an interger", json_object_get_string (sourceJ));
+    AFB_API_ERROR(source->api, "mbEncodeInt16: [%s] not an integer", json_object_get_string (sourceJ));
     return 1;
 }
 

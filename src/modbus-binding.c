@@ -337,7 +337,7 @@ static int ModbusLoadOne(afb_api_t api, CtlHandleT *controller, int rtu_idx, jso
   if (!rtu->prefix)
     rtu->prefix = rtu->uid;
 
-  // set default pooling frequency
+  // set default polling frequency
   if (!rtu->hertz)
     rtu->hertz = MB_DEFAULT_POLLING_FEQ;
 
@@ -356,7 +356,7 @@ static int ModbusLoadOne(afb_api_t api, CtlHandleT *controller, int rtu_idx, jso
     err = ModbusRtuConnect(api, rtu->connection, rtu->uid);
     if (err) {
       AFB_API_ERROR(api, "ModbusLoadOne: fail to connect TTY/RTU uid=%s uri=%s",
-                    rtu->uid, rtu->uid);
+                    rtu->uid, rtu->connection->uri);
       if (rtu->autostart > 1)
         goto OnErrorExit;
     }
@@ -373,7 +373,7 @@ static int ModbusLoadOne(afb_api_t api, CtlHandleT *controller, int rtu_idx, jso
   err = ModbusRtuSetSlave(api, rtu);
   if (err) {
     AFB_API_ERROR(api, "ModbusLoadOne: failed to set slave ID uid=%s uri=%s",
-                  rtu->uid, rtu->uid);
+                  rtu->uid, rtu->connection->uri);
     if (rtu->autostart > 1)
       goto OnErrorExit;
   }

@@ -74,7 +74,7 @@ keep specifying the URI in the according RTU configuration.
   "prefix": "myrtu", // api verb prefix
   "timeout": xxxx, // optional response timeout in ms
   "debug": 0-3, // option libmodbus debug level
-  "hertz": 10, // default pooling for event subscription
+  "hertz": 10, // default polling for event subscription
   "idle": 0, // force event even when value does not change every hertz*idle count
   "sensors": [
     {
@@ -91,7 +91,7 @@ keep specifying the URI in the according RTU configuration.
       "format" : "BOOL",
       "register" : 1,
       "privilege": "optional sensor required privilege",
-      "hertz": xxx, // special pooling rate for this sensor
+      "hertz": xxx, // special polling rate for this sensor
       "idle": xxx, // special idle force event when value does not change
     },
     {
@@ -100,7 +100,7 @@ keep specifying the URI in the according RTU configuration.
       "format" : "UINT32",
       "register" : 6,
       "privilege": "optional sensor required privilege",
-      "hertz": xxx // special pooling rate for this sensor
+      "hertz": xxx // special polling rate for this sensor
     },
 ...
 ```

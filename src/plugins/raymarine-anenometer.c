@@ -76,7 +76,7 @@ static int encodeWindDirection(ModbusSourceT *source, ModbusFormatCbT *format, j
    return 0;
 
 OnErrorExit:
-    AFB_API_ERROR(source->api, "encodeWindDirection: [%s] not an interger", json_object_get_string(sourceJ));
+    AFB_API_ERROR(source->api, "encodeWindDirection: [%s] not an integer", json_object_get_string(sourceJ));
     return 1;
 }
 
@@ -150,7 +150,7 @@ static int encodeWindSpeed(ModbusSourceT *source, ModbusFormatCbT *format, json_
    return 0;
 
 OnErrorExit:
-    AFB_API_ERROR(source->api, "encodeWindDirection: [%s] not an interger", json_object_get_string(sourceJ));
+    AFB_API_ERROR(source->api, "encodeWindDirection: [%s] not an integer", json_object_get_string(sourceJ));
     return 1;
 }
 // encode/decode callbacks

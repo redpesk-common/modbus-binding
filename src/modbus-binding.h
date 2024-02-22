@@ -101,7 +101,7 @@ struct ModbusRtuS {
   const int idle;
   const int slaveid;
   const int debug;
-  uint hertz;  // default pooling frequency when subscribing to sensors
+  uint hertz;  // default polling frequency when subscribing to sensors
   const uint idlen;  // no default for slaveid len but use 1 when nothing given
   const uint autostart;  // 0=no 1=try 2=mandatory
   ModbusConnectionT *connection;

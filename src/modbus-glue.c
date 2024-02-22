@@ -365,7 +365,7 @@ ModbusFunctionCbT *mbFunctionFind(afb_api_t api, const char *uid) {
   return (&ModbusFunctionsCB[idx]);
 }
 
-// Timer base sensor pooling tic send event if sensor value changed
+// Timer base sensor polling tic send event if sensor value changed
 static void ModbusTimerCallback(afb_timer_t timer, void *userdata,
                                uint decount) {
 

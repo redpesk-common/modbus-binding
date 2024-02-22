@@ -40,7 +40,7 @@ static int encodePigeonInfo(ModbusSourceT *source, ModbusFormatCbT *format, json
    return 0;
 
 OnErrorExit:
-    AFB_API_ERROR(source->api, "encodePigeonInfo: [%s] not an interger", json_object_get_string(sourceJ));
+    AFB_API_ERROR(source->api, "encodePigeonInfo: [%s] not an integer", json_object_get_string(sourceJ));
     return 1;
 }
 
