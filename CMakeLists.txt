@@ -44,13 +44,13 @@ pkg_check_modules(deps REQUIRED
 	afb-binding
 	librp-utils-static
 	afb-helpers4-static>=10.0.5
-    libmodbus>=3.1.6
+	libmodbus>=3.1.6
 )
+include_directories(AFTER ${deps_INCLUDE_DIRS})
 
 # Build modbus-binding
 add_library(modbus-binding SHARED src/modbus-binding.c src/modbus-encoder.c src/modbus-glue.c)
 set_target_properties(modbus-binding PROPERTIES PREFIX "")
-target_include_directories(modbus-binding AFTER PRIVATE ${deps_INCLUDE_DIRS})
 target_link_libraries(modbus-binding PRIVATE ${deps_LIBRARIES})
 pkg_get_variable(vscript afb-binding version_script)
 if(vscript)
@@ -69,12 +69,15 @@ install(DIRECTORY config-samples/ DESTINATION ${APP_DIR}/etc)
 add_library(kingpigeon SHARED src/plugins/kingpigeon-encoder.c)
 set_target_properties(kingpigeon PROPERTIES PREFIX "")
 target_include_directories(kingpigeon AFTER PRIVATE src)
+
 add_library(raymarine-anenometer SHARED src/plugins/raymarine-anenometer.c)
 set_target_properties(raymarine-anenometer PROPERTIES PREFIX "")
 target_include_directories(raymarine-anenometer AFTER PRIVATE src)
+
 add_library(r4dcb08-temperature SHARED src/plugins/r4dcb08-temperature.c)
 set_target_properties(r4dcb08-temperature PROPERTIES PREFIX "")
 target_include_directories(r4dcb08-temperature AFTER PRIVATE src)
+
 install(TARGETS kingpigeon raymarine-anenometer r4dcb08-temperature DESTINATION ${APP_DIR}/lib/plugins)
 
 # Build & install simulation
