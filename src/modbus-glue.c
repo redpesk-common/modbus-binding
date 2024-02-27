@@ -505,10 +505,7 @@ void ModbusSensorRequest(afb_req_t request, ModbusSensorT *sensor,
     if (!sensor->function->writeCB)
       goto OnWriteError;
 
-    ModbusRtuSemWait(sensor->api, rtu);
     err = (sensor->function->writeCB)(sensor, dataJ);
-    if (rtu->connection->semaphore) sem_post (rtu->connection->semaphore);
-
     if (err)
       goto OnWriteError;
 
