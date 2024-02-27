@@ -72,7 +72,10 @@ target_include_directories(kingpigeon AFTER PRIVATE src)
 add_library(raymarine-anenometer SHARED src/plugins/raymarine-anenometer.c)
 set_target_properties(raymarine-anenometer PROPERTIES PREFIX "")
 target_include_directories(raymarine-anenometer AFTER PRIVATE src)
-install(TARGETS kingpigeon raymarine-anenometer DESTINATION ${APP_DIR}/lib/plugins)
+add_library(r4dcb08-temperature SHARED src/plugins/r4dcb08-temperature.c)
+set_target_properties(r4dcb08-temperature PROPERTIES PREFIX "")
+target_include_directories(r4dcb08-temperature AFTER PRIVATE src)
+install(TARGETS kingpigeon raymarine-anenometer r4dcb08-temperature DESTINATION ${APP_DIR}/lib/plugins)
 
 # Build & install simulation
 add_executable(modbus-simulation simulation/simulation.c simulation/data-simulated.c)

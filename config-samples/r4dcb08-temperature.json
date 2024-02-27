@@ -1,0 +1,149 @@
+{
+    "binding": ["/usr/redpesk/modbus-binding/lib/modbus-binding.so"],
+    "set": {
+        "modbus-binding.so": {
+            "metadata": {
+                "uid": "modbus",
+                "version": "1.0",
+                "api": "modbus",
+                "info": "Generic R4DCB08 temperature collector test config"
+            },
+            "reference": "https://github.com/acpiccolo/R4DCB08-Temperature-Collector",
+            "plugins": [
+                {
+                    "uid": "r4dcb08_temperature",
+                    "info": "Plugin to handle temperature decoding",
+                    "spath": "package/lib/:./lib/plugins:./var",
+                    "libs": [
+                        "r4dcb08-temperature.so"
+                    ]
+                }
+            ],
+            "modbus":                 {
+                "uid": "Temperature-collector",
+                "info": "8 channels temperature collector",
+                "prefix": "TEMP",
+                "slaveid": 2,
+                "timeout": 250,
+                "autostart": 1,
+                "privilege": "global privilege",
+                "hertz": 1,
+                "sensors": [
+                    {
+                        "uid": "TEMPS",
+                        "info": "Read all 8 temperatures",
+                        "type": "REGISTER_HOLDING",
+                        "format": "plugin://r4dcb08_temperature#temps",
+                        "register": 0,
+                        "usage": {"action": ["read"]}
+                    },
+                    {
+                        "uid": "CORRECTIONS",
+                        "info": "Read all 8 corrections",
+                        "type": "REGISTER_HOLDING",
+                        "format": "INT16",
+                        "register": 8,
+                        "count": 8,
+                        "usage": {"action": ["read"]}
+                    },
+                    {
+                        "uid": "CORR_0",
+                        "info": "Set correction for channel 0",
+                        "type": "REGISTER_HOLDING",
+                        "format": "INT16",
+                        "register": 8,
+                        "usage": {"action": ["write"], "data": "json_integer"},
+                        "sample": [
+                            {"action": "write", "data": -3276},
+                            {"action": "write", "data": 3276}
+                        ]
+                    },
+                    {
+                        "uid": "CORR_1",
+                        "info": "Set correction for channel 1",
+                        "type": "REGISTER_HOLDING",
+                        "format": "INT16",
+                        "register": 9,
+                        "usage": {"action": ["write"], "data": "json_integer"},
+                        "sample": [
+                            {"action": "write", "data": -3276},
+                            {"action": "write", "data": 3276}
+                        ]
+                    },
+                    {
+                        "uid": "CORR_2",
+                        "info": "Set correction for channel 2",
+                        "type": "REGISTER_HOLDING",
+                        "format": "INT16",
+                        "register": 10,
+                        "usage": {"action": ["write"], "data": "json_integer"},
+                        "sample": [
+                            {"action": "write", "data": -3276},
+                            {"action": "write", "data": 3276}
+                        ]
+                    },
+                    {
+                        "uid": "CORR_3",
+                        "info": "Set correction for channel 3",
+                        "type": "REGISTER_HOLDING",
+                        "format": "INT16",
+                        "register": 11,
+                        "usage": {"action": ["write"], "data": "json_integer"},
+                        "sample": [
+                            {"action": "write", "data": -3276},
+                            {"action": "write", "data": 3276}
+                        ]
+                    },
+                    {
+                        "uid": "CORR_4",
+                        "info": "Set correction for channel 4",
+                        "type": "REGISTER_HOLDING",
+                        "format": "INT16",
+                        "register": 12,
+                        "usage": {"action": ["write"], "data": "json_integer"},
+                        "sample": [
+                            {"action": "write", "data": -3276},
+                            {"action": "write", "data": 3276}
+                        ]
+                    },
+                    {
+                        "uid": "CORR_5",
+                        "info": "Set correction for channel 5",
+                        "type": "REGISTER_HOLDING",
+                        "format": "INT16",
+                        "register": 13,
+                        "usage": {"action": ["write"], "data": "json_integer"},
+                        "sample": [
+                            {"action": "write", "data": -3276},
+                            {"action": "write", "data": 3276}
+                        ]
+                    },
+                    {
+                        "uid": "CORR_6",
+                        "info": "Set correction for channel 6",
+                        "type": "REGISTER_HOLDING",
+                        "format": "INT16",
+                        "register": 14,
+                        "usage": {"action": ["write"], "data": "json_integer"},
+                        "sample": [
+                            {"action": "write", "data": -3276},
+                            {"action": "write", "data": 3276}
+                        ]
+                    },
+                    {
+                        "uid": "CORR_7",
+                        "info": "Set correction for channel 7",
+                        "type": "REGISTER_HOLDING",
+                        "format": "INT16",
+                        "register": 15,
+                        "usage": {"action": ["write"], "data": "json_integer"},
+                        "sample": [
+                            {"action": "write", "data": -3276},
+                            {"action": "write", "data": 3276}
+                        ]
+                    }
+                ]
+            }
+        }
+    }
+}
