@@ -812,7 +812,10 @@ int ModbusRtuIsConnected(afb_api_t api, ModbusRtuT *rtu) {
     goto OnErrorExit;
   }
 
+  ModbusRtuSemWait(api, rtu);
   run = modbus_report_slave_id(ctx, sizeof(response), response);
+  if (rtu->connection->semaphore) sem_post (rtu->connection->semaphore);
+
   if (run < 0) {
     // handle case where RTU does not support "Report Server ID"
     if (strcmp(modbus_strerror(errno), "Illegal function") == 0)
