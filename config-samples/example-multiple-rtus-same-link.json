@@ -1,0 +1,92 @@
+{
+    "binding": ["/usr/redpesk/modbus-binding/lib/modbus-binding.so"],
+    "set": {
+        "modbus-binding.so": {
+            "metadata": {
+                "uid": "modbus",
+                "version": "1.0",
+                "api": "modbus",
+                "info": "Example config for two RTUs on the same serial link"
+            },
+            "plugins": [
+                {
+                    "uid": "r4dcb08_temperature",
+                    "info": "Plugin to handle temperature decoding",
+                    "spath": "package/lib/:./lib/plugins:./var",
+                    "libs": [
+                        "r4dcb08-temperature.so"
+                    ]
+                }
+            ],
+            "uri": "tty://dev/ttyUSB0:9600",
+            "modbus": [
+                {
+                    "uid": "Waveshare-Relay",
+                    "info": "8 channels relay module",
+                    "prefix": "WS8RL",
+                    "slaveid": 1,
+                    "timeout": 250,
+                    "autostart": 1,
+                    "hertz": 1,
+                    "sensors": [
+                        {
+                            "uid": "RELAY_ALL",
+                            "info": "Control all relays",
+                            "type": "COIL_HOLDING",
+                            "format": "UINT16",
+                            "register": 255,
+                            "usage": {"action": ["write"], "data": "json_type_boolean"},
+                            "sample": [
+                                {"action": "write", "data": 1},
+                                {"action": "write", "data": 0}
+                            ]
+                        },
+                        {
+                            "uid": "RELAY_STATE",
+                            "info": "Read states of relays",
+                            "type": "COIL_HOLDING",
+                            "format": "BOOL",
+                            "register": 0,
+                            "count": 8,
+                            "usage": {
+                                "action": ["read", "subscribe", "unsubscribe", "write"],
+                                "data": ["json_boolean", "json_boolean", "json_boolean", "json_boolean", "json_boolean", "json_boolean", "json_boolean", "json_boolean"]
+                            },
+                            "sample": [
+                                {"action": "write", "data": [true, false, true, false, true, false, true, false]}
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "uid": "Temperature-collector",
+                    "info": "8 channels temperature collector",
+                    "prefix": "TEMP",
+                    "slaveid": 2,
+                    "timeout": 250,
+                    "autostart": 1,
+                    "hertz": 1,
+                    "sensors": [
+                        {
+                            "uid": "TEMPS",
+                            "info": "Read all 8 temperatures",
+                            "type": "REGISTER_HOLDING",
+                            "format": "plugin://r4dcb08_temperature#temps",
+                            "register": 0,
+                            "usage": {"action": ["read"]}
+                        },
+                        {
+                            "uid": "CORRECTIONS",
+                            "info": "Read all 8 corrections",
+                            "type": "REGISTER_HOLDING",
+                            "format": "INT16",
+                            "register": 8,
+                            "count": 8,
+                            "usage": {"action": ["read"]}
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

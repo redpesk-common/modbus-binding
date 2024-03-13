@@ -19,9 +19,10 @@
                     ]
                 }
             ],
-            "modbus":                 {
+            "modbus": {
                 "uid": "Temperature-collector",
                 "info": "8 channels temperature collector",
+                "uri": "tty://tmp/interceptty:9600",
                 "prefix": "TEMP",
                 "slaveid": 2,
                 "timeout": 250,

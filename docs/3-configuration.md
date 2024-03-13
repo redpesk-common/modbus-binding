@@ -34,7 +34,8 @@ link/device, you have to specify a global URI at the same level as
 `metadata` and `modbus` in the JSON config. The URI must not be present
 in the configuration section of the RTUs which should use this URI (in
 other words, the global URI is used only when no URI is specified at the
-RTU level).
+RTU level). An example of this use case is available in
+`etc/example-multiple-rtus-same-link.json`.
 
 If you want to communicate over multiple serial links, each having
 multiple RTUs, you must run a binding instance per serial link. If other
