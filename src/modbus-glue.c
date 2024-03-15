@@ -30,6 +30,7 @@
 #include <modbus.h>
 #include <netdb.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 static int ModbusFormatResponse(ModbusSensorT *sensor,
                                 json_object **responseJ) {
@@ -91,12 +92,37 @@ static int ModbusRtuSemWait(afb_api_t api, ModbusRtuT *rtu) {
   return ModbusRtuSetSlave(api, rtu);
 }
 
+/**
+ * Discards received data.
+ *
+ * This should be called before sending a command to a Modbus device. If
+ * the device has answered the previous command after the timeout, the
+ * response will be read when sending a new command and the client will
+ * receive inconsistent data. Flushing circumvents that.
+*/
+static int ModbusFlush(afb_api_t api, ModbusConnectionT *conn) {
+  int rc;
+
+  rc = modbus_flush(conn->context);
+
+  if (rc < 0) {
+    AFB_API_ERROR(api, "ModbusFlush failed for %s with error %s", conn->uri, modbus_strerror(errno));
+    return 1;
+  }
+
+  return 0;
+}
+
 static int ModbusReadBits(ModbusSensorT *sensor, json_object **responseJ) {
   ModbusFunctionCbT *function = sensor->function;
   ModbusRtuT *rtu = sensor->rtu;
   modbus_t *ctx = (modbus_t *)rtu->connection->context;
   int err;
+
   ModbusRtuSemWait(sensor->api, rtu);
+  err = ModbusFlush(sensor->api, rtu->connection);
+  if(err)
+    goto OnErrorExit;
 
   // allocate input buffer on 1st read (all buffer are in 16bit for event diff
   // processing)
@@ -154,7 +180,11 @@ static int ModbusReadRegisters(ModbusSensorT *sensor, json_object **responseJ) {
   ModbusRtuT *rtu = sensor->rtu;
   modbus_t *ctx = (modbus_t *)rtu->connection->context;
   int err, regcount;
+
   ModbusRtuSemWait(sensor->api, rtu);
+  err = ModbusFlush(sensor->api, rtu->connection);
+  if(err)
+    goto OnErrorExit;
 
   regcount =
       sensor->count * format->nbreg; // number of register to read on device
@@ -215,7 +245,11 @@ static int ModbusWriteBits(ModbusSensorT *sensor, json_object *queryJ) {
   modbus_t *ctx = (modbus_t *)rtu->connection->context;
   json_object *elemJ;
   int err, idx;
+
   ModbusRtuSemWait(sensor->api, rtu);
+  err = ModbusFlush(sensor->api, rtu->connection);
+  if(err)
+    goto OnErrorExit;
 
   uint8_t *data8 =
       (uint8_t *)alloca(sizeof(uint8_t) * sensor->count);
@@ -273,7 +307,11 @@ static int ModbusWriteRegisters(ModbusSensorT *sensor, json_object *queryJ) {
   source.sensor = sensor->uid;
   source.api = sensor->api;
   source.context = sensor->context;
+
   ModbusRtuSemWait(sensor->api, rtu);
+  err = ModbusFlush(sensor->api, rtu->connection);
+  if(err)
+    goto OnErrorExit;
 
   if (!format->encodeCB) {
     AFB_API_NOTICE(sensor->api, "ModbusFormatResponse: No encodeCB uid=%s",
