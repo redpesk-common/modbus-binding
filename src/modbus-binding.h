@@ -89,6 +89,7 @@ struct ModbusConnectionS {
   void *context;
   sem_t *semaphore;
   const char *uri;
+  bool timed_out;
 };
 
 struct ModbusRtuS {

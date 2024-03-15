@@ -103,11 +103,16 @@ static int ModbusRtuSemWait(afb_api_t api, ModbusRtuT *rtu) {
 static int ModbusFlush(afb_api_t api, ModbusConnectionT *conn) {
   int rc;
 
-  rc = modbus_flush(conn->context);
+  // avoids a syscall when no timeout has occured
+  if (conn->timed_out) {
+    rc = modbus_flush(conn->context);
 
-  if (rc < 0) {
-    AFB_API_ERROR(api, "ModbusFlush failed for %s with error %s", conn->uri, modbus_strerror(errno));
-    return 1;
+    if (rc < 0) {
+      AFB_API_ERROR(api, "ModbusFlush failed for %s with error %s", conn->uri, modbus_strerror(errno));
+      return 1;
+    }
+
+    conn->timed_out = false;
   }
 
   return 0;
@@ -169,6 +174,8 @@ OnErrorExit:
                 rtu->uid, sensor->uid, modbus_strerror(errno));
   if (err == -1)
     ModbusReconnect(sensor);
+  if (errno == ETIMEDOUT)
+    rtu->connection->timed_out = true;
 
   if (rtu->connection->semaphore) sem_post (rtu->connection->semaphore);
   return 1;
@@ -234,6 +241,8 @@ OnErrorExit:
                 rtu->uid, sensor->uid, modbus_strerror(errno));
   if (err == -1)
     ModbusReconnect(sensor);
+  if (errno == ETIMEDOUT)
+    rtu->connection->timed_out = true;
 
   if (rtu->connection->semaphore) sem_post (rtu->connection->semaphore);
   return 1;
@@ -286,6 +295,8 @@ OnErrorExit:
       json_object_get_string(queryJ));
   if (err == -1)
     ModbusReconnect(sensor);
+  if (errno == ETIMEDOUT)
+    rtu->connection->timed_out = true;
 
   if (rtu->connection->semaphore) sem_post (rtu->connection->semaphore);
   return 1;
@@ -360,6 +371,9 @@ OnErrorExit:
       json_object_get_string(queryJ));
   if (err == -1)
     ModbusReconnect(sensor);
+  if (errno == ETIMEDOUT)
+    rtu->connection->timed_out = true;
+
   if (rtu->connection->semaphore) sem_post (rtu->connection->semaphore);
   return 1;
 }
