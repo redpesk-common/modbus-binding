@@ -870,7 +870,7 @@ int ModbusRtuIsConnected(afb_api_t api, ModbusRtuT *rtu) {
 
   if (run < 0) {
     // handle case where RTU does not support "Report Server ID"
-    if (strcmp(modbus_strerror(errno), "Illegal function") == 0)
+    if (errno == EMBXILFUN)
       return 1;
     else
       goto OnErrorExit;
