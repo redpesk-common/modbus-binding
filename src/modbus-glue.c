@@ -602,7 +602,11 @@ OnWriteError:
   goto OnErrorExit;
 
 OnReadError:
-  afb_req_reply_string_f(request, AFB_ERRNO_INTERNAL_ERROR,
+  if (errno == ETIMEDOUT)
+    err = AFB_USER_ERRNO(1);
+  else
+    err = AFB_ERRNO_INTERNAL_ERROR;
+  afb_req_reply_string_f(request, err,
       "read-error, ModbusSensorRequest: fail to read rtu=%s sensor=%s error=%s",
       rtu->uid, sensor->uid, modbus_strerror(errno));
   goto OnErrorExit;

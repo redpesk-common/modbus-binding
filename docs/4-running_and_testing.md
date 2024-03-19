@@ -35,6 +35,20 @@ modbus RTU0/D01_SWITCH {"action":"write","data":0}
 modbus RTU0/D01_SWITCH {"action":"read"}
 ```
 
+## About timeouts
+
+A request which has timed out will have a status code of `-1001`.
+
+A time out can be a symptom of multiple causes:
+
+- the RTU you're using is slower than the default timeout value we use
+  in configurations (250ms). Try to increase this value to something
+  which fits your RTU better.
+- you are sending a Modbus command which is not supported by the RTU,
+  and it simply does not reply (instead of sending an "Illegal function"
+  error for instance). You can use `interceptty` to debug your problem,
+  as described in [Configuration](./3-configuration.html).
+
 ## Adding your own config
 
 The JSON config file is selected with the
