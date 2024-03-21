@@ -5,5 +5,9 @@
         "Modbus",
         "redpesk",
         "rootapi"
-    ]
+    ],
+    "files.associations": {
+        "netdb.h": "c",
+        "modbus.h": "c"
+    }
 }

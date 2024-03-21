@@ -21,7 +21,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.6)
 
 # Project info
 project(modbus-binding
-    VERSION 2.0.2
+    VERSION 2.0.3
     DESCRIPTION "Provide a Modbus binding support TCP Modbus with format conversion for multi-register"
     HOMEPAGE_URL "https://github.com/redpesk-industrial/modbus-binding"
     LANGUAGES C

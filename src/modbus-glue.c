@@ -27,7 +27,7 @@
 #include <afb-req-utils.h>
 #include <arpa/inet.h>
 #include <errno.h>
-#include <modbus.h>
+#include <modbus/modbus.h>
 #include <netdb.h>
 #include <sys/socket.h>
 #include <unistd.h>
