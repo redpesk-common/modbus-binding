@@ -18,11 +18,11 @@ required-permission:
 targets:
   - target: main
     content:
-      src: lib/afb-modbus.so
+      src: lib/modbus-binding.so
       type: application/vnd.agl.service
     provided-api:
       - name: modbus
         value: ws
     required-binding:
-      - name: lib/afb-modbus.so
+      - name: lib/modbus-binding.so
         value: local
