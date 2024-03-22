@@ -11,15 +11,15 @@ Nevertheless the user may also add its own encoding/decoding format to
 handle device specific representation (ex: device info string), or
 custom application encoding (ex: float to uint16 for an analog output).
 Custom encoders/decoders are stored within user plugins (see sample at
-`src/plugins/kingpigeon`).
+[src/plugins/kingpigeon-encoder.c](https://github.com/redpesk-industrial/modbus-binding/blob/master/src/plugins/kingpigeon-encoder.c).
 
 ## API usage
 
 Modbus binding creates one verb per sensor. By default each sensor verb
 is prefixed by the RTU uid.
 
-The `config-samples` directory contains multiple examples.
-`eastron-sdm72d.json` uses serial Modbus, the others use Ethernet
+The [config-samples](https://github.com/redpesk-industrial/modbus-binding/tree/master/config-samples) directory contains multiple examples.
+[eastron-sdm72d.json](https://github.com/redpesk-industrial/modbus-binding/blob/master/config-samples/eastron-sdm72d.json) uses serial Modbus, the others use Ethernet
 Modbus.
 
 A proper working config is actually a binder config. It should have some
@@ -35,7 +35,7 @@ link/device, you have to specify a global URI at the same level as
 in the configuration section of the RTUs which should use this URI (in
 other words, the global URI is used only when no URI is specified at the
 RTU level). An example of this use case is available in
-`etc/example-multiple-rtus-same-link.json`.
+[config-samples/example-multiple-rtus-same-link.json](https://github.com/redpesk-industrial/modbus-binding/blob/master/config-samples/example-multiple-rtus-same-link.json).
 
 If you want to communicate over multiple serial links, each having
 multiple RTUs, you must run a binding instance per serial link. If other
