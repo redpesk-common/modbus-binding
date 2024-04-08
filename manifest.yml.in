@@ -16,3 +16,7 @@ targets:
     provided-binding:
       - name: modbus
         value: lib/modbus-binding.so
+
+file-properties:
+  - name: lib/modbus-binding.so
+    value: public
