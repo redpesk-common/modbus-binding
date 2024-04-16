@@ -299,7 +299,7 @@ OnErrorExit:
 
 static int mbDecodeInt16 (ModbusSourceT *source, ModbusFormatCbT *format, uint16_t *data, uint index, json_object **responseJ) {
 
-    *responseJ = json_object_new_int (data[index*format->nbreg]);
+    *responseJ = json_object_new_int ((int16_t)data[index*format->nbreg]);
     return 0;
 }
 
