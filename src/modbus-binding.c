@@ -29,8 +29,8 @@
 #include "modbus-binding.h"
 #include <afb-helpers4/afb-req-utils.h>
 
-#ifndef MB_DEFAULT_POLLING_FEQ
-#define MB_DEFAULT_POLLING_FEQ 10
+#ifndef MB_DEFAULT_POLLING_PERIOD
+#define MB_DEFAULT_POLLING_PERIOD 100
 #endif
 
 // static binding plugin store
@@ -194,6 +194,7 @@ static void SensorDynRequest(afb_req_t request, unsigned argc,
 static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor,
                          json_object *sensorJ) {
   int err = 0;
+  uint freq = 0, period_ms = 0, period_s = 0, period_m = 0;
   const char *type = NULL;
   const char *format = NULL;
   const char *privilege = NULL;
@@ -207,18 +208,36 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor,
   // set default values
   memset(sensor, 0, sizeof(ModbusSensorT));
   sensor->rtu = rtu;
-  sensor->hertz = rtu->hertz;
+  sensor->period = rtu->period;
   sensor->idle = rtu->idle;
   sensor->count = 1;
 
   err = rp_jsonc_unpack(
-      sensorJ, "{ss,ss,si,s?s,s?s,s?s,s?i,s?i,s?i,s?o,s?o,s?o !}", "uid",
+      sensorJ, "{ss,ss,si,s?s,s?s,s?s,s?i,s?i,s?i,s?i,s?i,s?i,s?o,s?o,s?o !}", "uid",
       &sensor->uid, "type", &type, "register", &sensor->registry, "info",
       &sensor->info, "privilege", &privilege, "format", &format, "hertz",
-      &sensor->hertz, "idle", &sensor->idle, "count", &sensor->count, "usage",
+      &freq, "period", &period_ms, "period_s", &period_s, "period_m",
+      &period_m, "idle", &sensor->idle, "count", &sensor->count, "usage",
       &sensor->usage, "sample", &sensor->sample, "args", &argsJ);
   if (err)
     goto ParsingErrorExit;
+
+  // can't have both polling freq and period in config
+  if (freq && (period_ms || period_s || period_m)) {
+    AFB_API_ERROR(api, "SensorLoadOne: can't have both polling frequency and period in config sensor=%s",
+        json_object_to_json_string(sensorJ));
+    goto OnErrorExit;
+  }
+  // if frequency is given, convert to period (ms)
+  if (freq) {
+    sensor->period = (uint)(1000 / freq);
+  }
+  // if period is given, sum all values
+  else if (period_ms || period_s || period_m) {
+    sensor->period = period_ms;
+    sensor->period += period_s * 1000;
+    sensor->period += period_m * 1000 * 60;
+  }
 
   // keep sample and usage as object when defined
   if (sensor->usage)
@@ -294,6 +313,7 @@ OnErrorExit:
 
 static int ModbusLoadOne(afb_api_t api, CtlHandleT *controller, int rtu_idx, json_object *rtuJ) {
   int err = 0;
+  uint freq = 0, period_s = 0, period_m = 0;
   json_object *sensorsJ;
   afb_auth_t *authent = NULL;
   ModbusRtuT *rtu = &controller->modbus[rtu_idx];
@@ -310,12 +330,12 @@ static int ModbusLoadOne(afb_api_t api, CtlHandleT *controller, int rtu_idx, jso
   }
 
   err = rp_jsonc_unpack(
-      rtuJ, "{ss,s?s,s?s,s?s,s?i,s?s,s?i,s?i,s?i,s?i,s?i,s?i,so}", "uid",
+      rtuJ, "{ss,s?s,s?s,s?s,s?i,s?s,s?i,s?i,s?i,s?i,s?i,s?i,s?i,s?i,s?i,so}", "uid",
       &rtu->uid, "info", &rtu->info, "uri", &rtu->connection->uri, "privileges",
       &rtu->privileges, "autostart", &rtu->autostart, "prefix", &rtu->prefix,
       "slaveid", &rtu->slaveid, "debug", &rtu->debug, "timeout", &rtu->timeout,
-      "idlen", &rtu->idlen, "hertz", &rtu->hertz, "idle", &rtu->idle, "sensors",
-      &sensorsJ);
+      "idlen", &rtu->idlen, "hertz", &freq, "period", &rtu->period, "period_s",
+      &period_s, "period_m", &period_m, "idle", &rtu->idle, "sensors", &sensorsJ);
   if (err) {
     AFB_API_ERROR(api, "Fail to parse rtu JSON : (%s)",
                   json_object_to_json_string(rtuJ));
@@ -337,9 +357,24 @@ static int ModbusLoadOne(afb_api_t api, CtlHandleT *controller, int rtu_idx, jso
   if (!rtu->prefix)
     rtu->prefix = rtu->uid;
 
-  // set default polling frequency
-  if (!rtu->hertz)
-    rtu->hertz = MB_DEFAULT_POLLING_FEQ;
+  // can't have both polling freq and period in config
+  if (freq && (rtu->period || period_s || period_m)) {
+    AFB_API_ERROR(api, "ModbusLoadOne: can't have both polling frequency and period in config uid=%s", rtu->uid);
+    goto OnErrorExit;
+  }
+  // if frequency is given, convert to period (ms)
+  if (freq) {
+    rtu->period = (uint)(1000 / freq);
+  }
+  // if period is given, sum all values
+  else if (rtu->period || period_s || period_m) {
+    rtu->period += period_s * 1000;
+    rtu->period += period_m * 1000 * 60;
+  }
+  // if nothing is given, set default
+  else {
+    rtu->period = MB_DEFAULT_POLLING_PERIOD;
+  }
 
   err = asprintf((char **)&rtu->adminapi, "%s/%s", rtu->prefix, "admin");
   err = afb_api_add_verb(api, rtu->adminapi, rtu->info, RtuDynRequest, rtu,

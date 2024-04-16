@@ -102,7 +102,7 @@ struct ModbusRtuS {
   const int idle;
   const int slaveid;
   const int debug;
-  uint hertz;  // default polling frequency when subscribing to sensors
+  uint period;  // default polling period when subscribing to sensors
   const uint idlen;  // no default for slaveid len but use 1 when nothing given
   const uint autostart;  // 0=no 1=try 2=mandatory
   ModbusConnectionT *connection;
@@ -118,7 +118,7 @@ struct ModbusSensorS {
   const char *apiverb;
   const uint registry;
   uint count;
-  uint hertz;
+  uint period;
   uint idle;
   uint16_t *buffer;
   ModbusFormatCbT *format;
