@@ -252,10 +252,10 @@ static int mbDecodeUInt32 (ModbusSourceT *source, ModbusFormatCbT *format, uint1
 
 static int mbEncodeUInt32(ModbusSourceT *source, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
 
-   if (!json_object_is_type (sourceJ, json_type_int)) goto OnErrorExit;
-   uint32_t value= (uint32_t)json_object_get_int (sourceJ);
-   MODBUS_SET_INT32_TO_INT16 (*response, index*format->nbreg, (int32_t)value);
-   return 0;
+    if (!json_object_is_type (sourceJ, json_type_int)) goto OnErrorExit;
+    uint32_t value= (uint32_t)json_object_get_int (sourceJ);
+    MODBUS_SET_INT32_TO_INT16 (*response, index*format->nbreg, (int32_t)value);
+    return 0;
 
 OnErrorExit:
     AFB_API_ERROR(source->api, "mbDecodeInt16: [%s] not an integer", json_object_get_string (sourceJ));
@@ -286,14 +286,18 @@ static int mbDecodeUInt16(ModbusSourceT *source, ModbusFormatCbT *format, uint16
 }
 
 static int mbEncodeUInt16(ModbusSourceT *source, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
-   if (!json_object_is_type (sourceJ, json_type_int)) goto OnErrorExit;
-   uint16_t value = (uint16_t)json_object_get_int(sourceJ);
+    int32_t value;
 
-   *response[index*format->nbreg] = value;
-   return 0;
+    if (!json_object_is_type (sourceJ, json_type_int)) goto OnErrorExit;
+
+    value = json_object_get_int(sourceJ);
+    if (value < 0 || value > UINT16_MAX) goto OnErrorExit;
+
+    *response[index*format->nbreg] = (uint16_t)value;
+    return 0;
 
 OnErrorExit:
-    AFB_API_ERROR(source->api, "mbEncodeUInt16: [%s] not an integer", json_object_get_string (sourceJ));
+    AFB_API_ERROR(source->api, "mbEncodeUInt16: [%s] not a 16 bits unsigned integer", json_object_get_string (sourceJ));
     return 1;
 }
 
@@ -304,15 +308,18 @@ static int mbDecodeInt16 (ModbusSourceT *source, ModbusFormatCbT *format, uint16
 }
 
 static int mbEncodeInt16(ModbusSourceT *source, ModbusFormatCbT *format, json_object *sourceJ, uint16_t **response, uint index) {
+    int32_t value;
 
-   if (!json_object_is_type (sourceJ, json_type_int))  goto OnErrorExit;
-   int16_t value = (int16_t)json_object_get_int (sourceJ);
+    if (!json_object_is_type (sourceJ, json_type_int)) goto OnErrorExit;
+   
+    value = json_object_get_int(sourceJ);
+    if (value < INT16_MIN || value > INT16_MAX) goto OnErrorExit;
 
-   *response[index*format->nbreg] = value;
+   *response[index*format->nbreg] = (int16_t)value;
    return 0;
 
 OnErrorExit:
-    AFB_API_ERROR(source->api, "mbEncodeInt16: [%s] not an integer", json_object_get_string (sourceJ));
+    AFB_API_ERROR(source->api, "mbEncodeInt16: [%s] not a 16 bits integer", json_object_get_string (sourceJ));
     return 1;
 }
 
