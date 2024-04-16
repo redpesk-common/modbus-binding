@@ -511,7 +511,7 @@ static int ModbusSensorEventCreate(ModbusSensorT *sensor,
     }
     err = afb_timer_create(&sensor->timer, 0, 0, 0,
                            0, // run forever,
-                           (uint)1000 / rtu->hertz, 0, ModbusTimerCallback,
+                           (uint)1000 / sensor->hertz, 0, ModbusTimerCallback,
                            mbEvtHandle, 1);
 
     if (err != 0) {
