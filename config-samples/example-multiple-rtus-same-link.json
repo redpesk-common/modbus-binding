@@ -26,7 +26,7 @@
                     "slaveid": 1,
                     "timeout": 250,
                     "autostart": 1,
-                    "hertz": 1,
+                    "period_s": 1,
                     "sensors": [
                         {
                             "uid": "RELAY_ALL",
@@ -64,7 +64,7 @@
                     "slaveid": 2,
                     "timeout": 250,
                     "autostart": 1,
-                    "hertz": 1,
+                    "period_s": 1,
                     "sensors": [
                         {
                             "uid": "TEMPS",

@@ -17,7 +17,7 @@
                 "timeout": 250,
                 "autostart": 1,
                 "privilege": "Eastron:Modbus",
-                "hertz": 10,
+                "period_s": 10,
                 "sensors": [
                     {
                         "uid": "Volts-L1",

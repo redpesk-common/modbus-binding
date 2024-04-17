@@ -15,7 +15,7 @@
         "slaveid": 1,
         "timeout": 250,
         "autostart" : 1,
-        "hertz": 1,
+        "period_s": 1,
         "prefix": "1510SP",
         "privilege": "global privilege",
         "sensors": [

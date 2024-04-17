@@ -28,7 +28,7 @@
           "autostart" : 1,
           "prefix": "RTU0",
           "privilege": "global privilege",
-          "hertz": 10,
+          "period_s": 10,
           "sensors": [
             {
               "uid": "PRODUCT_INFO",

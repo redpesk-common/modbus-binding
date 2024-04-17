@@ -3,7 +3,10 @@
 ## API usage
 
 Modbus binding creates one verb per sensor. By default each sensor verb
-is prefixed by the RTU uid.
+is prefixed by the RTU uid. There can be multiple RTUs per configuration
+file, the JSON `modbus` value has to be an array of objects instead of
+just one object. See [this config](https://github.com/redpesk-industrial/modbus-binding/tree/master/config-samples/example-multiple-rtus-same-link.json)
+for an example.
 
 The [config-samples](https://github.com/redpesk-industrial/modbus-binding/tree/master/config-samples) directory contains multiple examples.
 [eastron-sdm72d.json](https://github.com/redpesk-industrial/modbus-binding/blob/master/config-samples/eastron-sdm72d.json) uses serial Modbus, the others use Ethernet
@@ -62,8 +65,8 @@ keep specifying the URI in the according RTU configuration.
   "prefix": "myrtu", // api verb prefix
   "timeout": xxxx, // optional response timeout in ms
   "debug": 0-3, // option libmodbus debug level
-  "hertz": 10, // default polling for event subscription
-  "idle": 0, // force event even when value does not change every hertz*idle count
+  "period": 100, // default polling for event subscription
+  "idle": 0, // force event every <idle> poll even when value does not change
   "sensors": [
     {
       "uid": "PRODUCT_INFO",
@@ -79,8 +82,8 @@ keep specifying the URI in the according RTU configuration.
       "format" : "BOOL",
       "register" : 1,
       "privilege": "optional sensor required privilege",
-      "hertz": xxx, // special polling rate for this sensor
-      "idle": xxx, // special idle force event when value does not change
+      "period": xxx, // special polling period (ms) for this sensor
+      "idle": xxx, // force event every <idle> poll when value does not change
     },
     {
       "uid": "DIN01_counter",
@@ -88,7 +91,7 @@ keep specifying the URI in the according RTU configuration.
       "format" : "UINT32",
       "register" : 6,
       "privilege": "optional sensor required privilege",
-      "hertz": xxx // special polling rate for this sensor
+      "period": xxx, // special polling period (ms) for this sensor
     },
 ...
 ```
@@ -105,7 +108,7 @@ keep specifying the URI in the according RTU configuration.
   "timeout": 250,
   "autostart": 1,
   "privilege": "Eastron:Modbus",
-  "hertz": 10,
+  "period": 100,
   "sensors": [
     {
       "uid": "Volts-L1",
@@ -125,6 +128,56 @@ keep specifying the URI in the according RTU configuration.
     },
 ...
 ```
+
+## Subscription
+
+`modbus-binding` allows subscribing to a sensor. By default, it means
+that the binding will read the sensor every 100 milliseconds and send an
+event to the subscribed client when the value changes.
+
+This behavior can be tweaked to one's needs in the configuration:
+
+- a sensor can have `period`, `period_s` and/or `period_m` values to
+  configure the delay (respectively in milliseconds, seconds and
+  minutes) between each read. If multiple of these values are used, they
+  are added (so a `period_s` of 2 and a `period` of 1 will result in a
+  delay of 2001 milliseconds).
+- a sensor can have an `idle` value to send an event even if the data
+  read on the sensor hasn't changed. An `idle` of 1 means "always send
+  an event even if the data hasn't changed"; an `idle` of 5 means "send
+  an event every 5 reads even if the data hasn't changed". The default
+  value is 0 (an even is sent only when the data changes).
+- to avoid setting the same values for every single sensor in your
+  configuration, you can set default values (for `period`, `period_s`,
+  `period_m` and `idle`) at the RTU level.
+
+### Examples
+
+```json
+"modbus": {
+  "uid": "Eastron-SDM72D",
+  "period_m": 1,
+  "period_s": 30,
+  "idle": 5,
+  ...
+  "sensors": [
+    {
+      "uid": "Volts-L1",
+      "period": 500,
+      ...
+    }
+  ]
+}
+```
+
+In this example, we set a default polling period of 1 minute and 30
+seconds, and we ask to get an event every 5 polls when the data doesn't
+change (we will still get an event every time the data changes).
+
+Then we declare a sensor `Volts-L1` which overrides the default polling
+period and uses a period of 500 milliseconds instead. Since it does not
+declare an `idle` value, the default `idle` value of 5 set at the RTU
+level of the configuration will be used.
 
 ## Modbus controller exposed
 

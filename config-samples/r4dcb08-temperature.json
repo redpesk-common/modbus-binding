@@ -27,7 +27,7 @@
                 "timeout": 250,
                 "autostart": 1,
                 "privilege": "global privilege",
-                "hertz": 1,
+                "period_s": 1,
                 "sensors": [
                     {
                         "uid": "TEMPS",

@@ -11,13 +11,13 @@
             "modbus": {
                 "uid": "Waveshare-Relay",
                 "info": "8 channels relay module",
-                "uri": "tty://tmp/interceptty:9600",
+                "uri": "tty://dev/ttyUSB1:9600",
                 "prefix": "WS8RL",
                 "slaveid": 1,
                 "timeout": 250,
                 "autostart": 1,
                 "privilege": "global privilege",
-                "hertz": 1,
+                "period_s": 1,
                 "sensors": [
                     {
                         "uid": "RELAY_0",
