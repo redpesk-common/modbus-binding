@@ -1,18 +1,5 @@
 # Configuration
 
-## Modbus binding supports a set of default encoders for values store within multiple registries
-
-* int16, bool => 1 register
-* int32 => 2 registers
-* int64 => 4 registers
-* float, floatabcd, floatdabc, ...
-
-Nevertheless the user may also add its own encoding/decoding format to
-handle device specific representation (ex: device info string), or
-custom application encoding (ex: float to uint16 for an analog output).
-Custom encoders/decoders are stored within user plugins (see sample at
-[src/plugins/kingpigeon-encoder.c](https://github.com/redpesk-industrial/modbus-binding/blob/master/src/plugins/kingpigeon-encoder.c).
-
 ## API usage
 
 Modbus binding creates one verb per sensor. By default each sensor verb
@@ -166,29 +153,37 @@ keep specifying the URI in the according RTU configuration.
 
 Example: `modbus myrtu/din01_counter {"action": "read"}`
 
-## Format converter
+## Encoders
 
 The Modbus binding supports both builtin format converters and optional
 custom converters provided by user through plugins.
 
-* Standard converters include the traditional INT16, UINT16, INT32,
-  UINT32, FLOATABCD… Depending on the format one or more register is
-  read
+Standard converters include the traditional INT16, UINT16, INT32,
+UINT32, FLOATABCD… Depending on the format one or more register is
+read. See [src/modbus-encoder.c](https://github.com/redpesk-industrial/modbus-binding/blob/master/src/modbus-encoder.c)
+for the whole detailed list.
 
-* Custom converters are provided through plugins. Custom converters
-  should export an array of structures named `modbusFormats`, which
-  describes the provided formats, and which is terminated with a `NULL`
-  named format.
+### Custom encoders
 
-  * uid is the formatter name as declared inside JSON config file.
-  * decode/encode callbacks are respectively called for read/write actions.
-  * init callback is called at format registration time and might be
-    used to process a special value for a given sensor (e.g. deviation
-    for a wind sensor). Each sensor attaches a `void*` context. The
-    developer may declare a private context for each sensor (e.g. to
-    store a previous value, a min/max…). The init callback receives the
-    sensor source to store context and optionally the `args` JSON object
-    when present within the sensor's JSON config.
+The user may also add its own encoding/decoding format to
+handle device specific representation (ex: device info string), or
+custom application encoding (ex: float to uint16 for an analog output).
+Custom encoders/decoders are stored within user plugins (see sample at
+[src/plugins/kingpigeon-encoder.c](https://github.com/redpesk-industrial/modbus-binding/blob/master/src/plugins/kingpigeon-encoder.c).
+
+Custom converters should export an array of structures named
+`modbusFormats`, which describes the provided formats, and which is
+terminated with a `NULL` named format.
+
+* uid is the formatter name as declared inside JSON config file.
+* decode/encode callbacks are respectively called for read/write actions.
+* init callback is called at format registration time and might be
+  used to process a special value for a given sensor (e.g. deviation
+  for a wind sensor). Each sensor attaches a `void*` context. The
+  developer may declare a private context for each sensor (e.g. to
+  store a previous value, a min/max…). The init callback receives the
+  sensor source to store context and optionally the `args` JSON object
+  when present within the sensor's JSON config.
 
 **WARNING:** do not confuse format count and `nbreg`. `nbreg` is the
 number of 16 bits registers used for a given formatter (e.g. 4 for a
@@ -221,33 +216,3 @@ ModbusFormatCbT modbusFormats[] = {
   { .uid = NULL } // must be NULL terminated
 };
 ```
-
-### Serial sniffing
-
-When writing a new format plugin, or simply a configuration, it can be
-useful to see the binary data transmitted by the binding, and received
-from the serial link. A program such as `intercerptty` allows you to do
-that by acting as a proxy between the binding and the real serial
-device.
-
-#### Compilation
-
-`interceptty` does not figure in many repositories and has to be built
-from [its sources](https://github.com/geoffmeyers/interceptty). Clone
-this repo and run the following commands:
-
-```bash
-git clone https://github.com/geoffmeyers/interceptty
-./configure
-make
-```
-
-#### Usage
-
-```bash
-interceptty /dev/ttyUSB0
-```
-
-You have to use `/tmp/interceptty` as your serial device in the binding
-instead of `/dev/ttyUSB0`. `interceptty` will then display all the data
-which goes through `/dev/ttyUSB0`.

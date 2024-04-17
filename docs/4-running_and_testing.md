@@ -1,5 +1,37 @@
 # Running/Testing
 
+## Serial sniffing
+
+When writing a new format plugin, or simply a configuration, it can be
+useful to see the binary data transmitted by the binding, and received
+from the serial link. A program such as `intercerptty` allows you to do
+that by acting as a proxy between the binding and the real serial
+device.
+
+### Compilation
+
+`interceptty` does not figure in many repositories and has to be built
+from [its sources](https://github.com/geoffmeyers/interceptty). Clone
+this repo and run the following commands:
+
+```bash
+git clone https://github.com/geoffmeyers/interceptty
+./configure
+make
+```
+
+### Usage
+
+```bash
+interceptty /dev/ttyUSB0
+```
+
+You have to use `/tmp/interceptty` as your serial device in the binding
+instead of `/dev/ttyUSB0`. `interceptty` will then display all the data
+which goes through `/dev/ttyUSB0`.
+
+## Kingpigeon devices
+
 By default Kingpigeon devices uses a fixed IP address (192.168.1.110).
 You may need to add this network to your own desktop config before
 starting your test. Check hardware documentation on
