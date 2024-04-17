@@ -213,7 +213,7 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor,
   sensor->count = 1;
 
   err = rp_jsonc_unpack(
-      sensorJ, "{ss,ss,si,s?s,s?s,s?s,s?i,s?i,s?i,s?i,s?i,s?i,s?o,s?o,s?o !}", "uid",
+      sensorJ, "{ss,ss,si,s?s,s?s,s?s,s?i,s?i,s?i,s?i,s?i,s?i,s?o,s?o,s?o}", "uid",
       &sensor->uid, "type", &type, "register", &sensor->registry, "info",
       &sensor->info, "privilege", &privilege, "format", &format, "hertz",
       &freq, "period", &period_ms, "period_s", &period_s, "period_m",
