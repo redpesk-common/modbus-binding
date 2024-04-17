@@ -1,5 +1,4 @@
 {
-    "binding": ["/usr/redpesk/modbus-binding/lib/modbus-binding.so"],
     "set": {
         "modbus-binding.so": {
             "metadata": {

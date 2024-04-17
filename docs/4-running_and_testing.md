@@ -46,7 +46,7 @@ ping 192.168.1.110 # check you can ping your TCP modbus device
 ## Start sample Binder
 
 ```bash
-afb-binder --name=afb-kingpigeon --port=1234  --ldpaths=src --workdir=. --verbose
+afb-binder --binding=./build/modbus-binding.so --config=./config-samples/control-modbus_kingpigeon-config.json -vvv
 ```
 
 Open the binder devtool with your browser at <http://localhost:1234/devtools/index.html>
@@ -83,18 +83,17 @@ A time out can be a symptom of multiple causes:
 
 ## Adding your own config
 
-The JSON config file is selected with the
-[binder options]({% chapter_link afb_binder.options-of-afb-binder %})
-(see `--config=configpath` or `--binding=bindingpath:configpath`).
+While developing, a configuration of the format show in the
+[config-samples directory](https://github.com/redpesk-industrial/modbus-binding/blob/master/config-samples/)
+is passed to the binder using the `--config=` option.
 
-```bash
-afb-binder --binding=/usr/redpesk/modbus-binding/lib/afb-modbus.so:/usr/redpesk/modbus-binding/etc/myconfig.json
-# or if you specify the binding to use in the config file
-afb-binder --config=/usr/redpesk/modbus-binding/etc/myconfig.json
-# or a mix of both
-afb-binder --binding=/usr/redpesk/modbus-binding/lib/afb-modbus.so --config=/usr/redpesk/modbus-binding/etc/myconfig.json
-```
+For production, redpesk's `modbus-binding` package should be used.
+`modbus-binding` is actually a resource binding, not a service; what
+means it cannot be ran as provided. For that you need to create a
+separate package containing your configuration and a manifest file which
+indicates that you provide a configuration for another binding.
+[More details about resource bindings here]({% chapter_link application-framework-dev.resource-bindings %}).
 
 **Warning:** some TCP Modbus devices, as KingPigeon's, check SlaveID
-even for building I/O. Generic config make the assumption that your
+even for building I/O. Config samples make the assumption that your
 slaveID is set to `1`.
