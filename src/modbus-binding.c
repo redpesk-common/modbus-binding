@@ -330,12 +330,12 @@ static int ModbusLoadOne(afb_api_t api, CtlHandleT *controller, int rtu_idx, jso
   }
 
   err = rp_jsonc_unpack(
-      rtuJ, "{ss,s?s,s?s,s?s,s?i,s?s,s?i,s?i,s?i,s?i,s?i,s?i,s?i,s?i,s?i,so}", "uid",
+      rtuJ, "{ss,s?s,s?s,s?s,s?i,s?s,s?i,s?i,s?i,s?i,s?i,s?i,s?i,s?i,so}", "uid",
       &rtu->uid, "info", &rtu->info, "uri", &rtu->connection->uri, "privileges",
       &rtu->privileges, "autostart", &rtu->autostart, "prefix", &rtu->prefix,
       "slaveid", &rtu->slaveid, "debug", &rtu->debug, "timeout", &rtu->timeout,
-      "idlen", &rtu->idlen, "hertz", &freq, "period", &rtu->period, "period_s",
-      &period_s, "period_m", &period_m, "idle", &rtu->idle, "sensors", &sensorsJ);
+      "hertz", &freq, "period", &rtu->period, "period_s", &period_s, "period_m",
+      &period_m, "idle", &rtu->idle, "sensors", &sensorsJ);
   if (err) {
     AFB_API_ERROR(api, "Fail to parse rtu JSON : (%s)",
                   json_object_to_json_string(rtuJ));
