@@ -257,10 +257,10 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor,
   sensor->count = 1;
 
   err = rp_jsonc_unpack(
-      sensorJ, "{ss,ss,si,s?s,s?s,s?s,s?i,s?i,s?o,s?o,s?o}", "uid",
-      &sensor->uid, "type", &type, "register", &sensor->registry, "info",
-      &sensor->info, "privilege", &privilege, "format", &format, "idle",
-      &sensor->idle, "count", &sensor->count, "usage", &sensor->usage,
+      sensorJ, "{ss,ss,si,s?s,s?s,s?s,s?i,s?i,s?o,s?o,s?o}",
+      "uid", &sensor->uid, "type", &type, "register", &sensor->registry,
+      "info", &sensor->info, "privilege", &privilege, "format", &format,
+      "idle", &sensor->idle, "count", &sensor->count, "usage", &sensor->usage,
       "sample", &sensor->sample, "args", &argsJ);
   if (err)
     goto ParsingErrorExit;
@@ -366,11 +366,11 @@ static int ModbusLoadOne(afb_api_t api, CtlHandleT *controller, int rtu_idx, jso
   }
 
   err = rp_jsonc_unpack(
-      rtuJ, "{ss,s?s,s?s,s?s,s?i,s?s,s?i,s?i,s?i,s?i,so}", "uid",
-      &rtu->uid, "info", &rtu->info, "uri", &rtu->connection->uri, "privileges",
-      &rtu->privileges, "autostart", &rtu->autostart, "prefix", &rtu->prefix,
-      "slaveid", &rtu->slaveid, "debug", &rtu->debug, "timeout", &rtu->timeout,
-      "idle", &rtu->idle, "sensors", &sensorsJ);
+      rtuJ, "{ss,s?s,s?s,s?s,s?i,s?s,s?i,s?i,s?i,s?i,so}",
+      "uid", &rtu->uid, "info", &rtu->info, "uri", &rtu->connection->uri,
+      "privileges", &rtu->privileges, "autostart", &rtu->autostart,
+      "prefix", &rtu->prefix, "slaveid", &rtu->slaveid, "debug", &rtu->debug,
+      "timeout", &rtu->timeout, "idle", &rtu->idle, "sensors", &sensorsJ);
   if (err) {
     AFB_API_ERROR(api, "Fail to parse rtu JSON : (%s)",
                   json_object_to_json_string(rtuJ));
