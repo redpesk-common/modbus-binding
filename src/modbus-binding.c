@@ -194,7 +194,8 @@ static void SensorDynRequest(afb_req_t request, unsigned argc,
 static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor,
                          json_object *sensorJ) {
   int err = 0;
-  uint freq = 0, period_ms = 0, period_s = 0, period_m = 0;
+  uint period_ms = 0;
+  double freq = 0, period_s = 0, period_m = 0;
   const char *type = NULL;
   const char *format = NULL;
   const char *privilege = NULL;
@@ -213,7 +214,7 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor,
   sensor->count = 1;
 
   err = rp_jsonc_unpack(
-      sensorJ, "{ss,ss,si,s?s,s?s,s?s,s?i,s?i,s?i,s?i,s?i,s?i,s?o,s?o,s?o}", "uid",
+      sensorJ, "{ss,ss,si,s?s,s?s,s?s,s?f,s?i,s?f,s?f,s?i,s?i,s?o,s?o,s?o}", "uid",
       &sensor->uid, "type", &type, "register", &sensor->registry, "info",
       &sensor->info, "privilege", &privilege, "format", &format, "hertz",
       &freq, "period", &period_ms, "period_s", &period_s, "period_m",
@@ -235,8 +236,8 @@ static int SensorLoadOne(afb_api_t api, ModbusRtuT *rtu, ModbusSensorT *sensor,
   // if period is given, sum all values
   else if (period_ms || period_s || period_m) {
     sensor->period = period_ms;
-    sensor->period += period_s * 1000;
-    sensor->period += period_m * 1000 * 60;
+    sensor->period += (uint)(period_s * 1000);
+    sensor->period += (uint)(period_m * 1000 * 60);
   }
 
   // keep sample and usage as object when defined
@@ -313,7 +314,7 @@ OnErrorExit:
 
 static int ModbusLoadOne(afb_api_t api, CtlHandleT *controller, int rtu_idx, json_object *rtuJ) {
   int err = 0;
-  uint freq = 0, period_s = 0, period_m = 0;
+  double freq = 0, period_s = 0, period_m = 0;
   json_object *sensorsJ;
   afb_auth_t *authent = NULL;
   ModbusRtuT *rtu = &controller->modbus[rtu_idx];
@@ -330,7 +331,7 @@ static int ModbusLoadOne(afb_api_t api, CtlHandleT *controller, int rtu_idx, jso
   }
 
   err = rp_jsonc_unpack(
-      rtuJ, "{ss,s?s,s?s,s?s,s?i,s?s,s?i,s?i,s?i,s?i,s?i,s?i,s?i,s?i,so}", "uid",
+      rtuJ, "{ss,s?s,s?s,s?s,s?i,s?s,s?i,s?i,s?i,s?f,s?i,s?f,s?f,s?i,so}", "uid",
       &rtu->uid, "info", &rtu->info, "uri", &rtu->connection->uri, "privileges",
       &rtu->privileges, "autostart", &rtu->autostart, "prefix", &rtu->prefix,
       "slaveid", &rtu->slaveid, "debug", &rtu->debug, "timeout", &rtu->timeout,
@@ -368,8 +369,8 @@ static int ModbusLoadOne(afb_api_t api, CtlHandleT *controller, int rtu_idx, jso
   }
   // if period is given, sum all values
   else if (rtu->period || period_s || period_m) {
-    rtu->period += period_s * 1000;
-    rtu->period += period_m * 1000 * 60;
+    rtu->period += (uint)(period_s * 1000);
+    rtu->period += (uint)(period_m * 1000 * 60);
   }
   // if nothing is given, set default
   else {
