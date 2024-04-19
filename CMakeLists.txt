@@ -80,6 +80,7 @@ endmacro()
 add_plugin(kingpigeon           src/plugins/kingpigeon-encoder.c)
 add_plugin(raymarine-anenometer src/plugins/raymarine-anenometer.c)
 add_plugin(r4dcb08-temperature  src/plugins/r4dcb08-temperature.c)
+target_link_libraries(raymarine-anenometer PRIVATE m)
 
 # Build & install simulation
 add_executable(modbus-simulation simulation/simulation.c simulation/data-simulated.c)
