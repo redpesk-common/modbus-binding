@@ -21,7 +21,7 @@ static int decodeTemps(ModbusSourceT *source, ModbusFormatCbT *format, uint16_t 
         } else if (*data < 32768) {
             res = json_object_new_double(*data / 10.0);
         } else {
-            res = json_object_new_null();
+            res = NULL;
         }
 
         json_object_array_add(*responseJ, res);
