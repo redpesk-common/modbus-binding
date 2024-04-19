@@ -34,6 +34,9 @@ set(PROJECT_LICENSE "APL2.0")
 include(GNUInstallDirs)
 include(FindPkgConfig)
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
 # Declare options
 set(AFM_APP_DIR ${CMAKE_INSTALL_PREFIX}/redpesk CACHE PATH "Applications directory")
 set(APP_DIR ${AFM_APP_DIR}/${PROJECT_NAME})
@@ -51,7 +54,7 @@ include_directories(AFTER ${deps_INCLUDE_DIRS})
 # Build modbus-binding
 add_library(modbus-binding SHARED src/modbus-binding.c src/modbus-encoder.c src/modbus-glue.c)
 set_target_properties(modbus-binding PROPERTIES PREFIX "")
-target_link_libraries(modbus-binding PRIVATE ${deps_LIBRARIES})
+target_link_libraries(modbus-binding PRIVATE ${deps_LIBRARIES} Threads::Threads)
 pkg_get_variable(vscript afb-binding version_script)
 if(vscript)
     target_link_options(modbus-binding PRIVATE -Wl,--version-script=${vscript})
@@ -66,19 +69,17 @@ install(FILES src/modbus-binding.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(DIRECTORY config-samples/ DESTINATION ${APP_DIR}/etc)
 
 # Build & install plugins
-add_library(kingpigeon SHARED src/plugins/kingpigeon-encoder.c)
-set_target_properties(kingpigeon PROPERTIES PREFIX "")
-target_include_directories(kingpigeon AFTER PRIVATE src)
+macro(add_plugin name)
+	add_library(${name} SHARED ${ARGN})
+	set_target_properties(${name} PROPERTIES PREFIX "")
+	target_include_directories(${name} PRIVATE ${deps_INCLUDE_DIRS} src)
+	target_link_libraries(${name} PRIVATE ${deps_LIBRARIES} Threads::Threads)
+	install(TARGETS ${name} DESTINATION ${APP_DIR}/lib/plugins)
+endmacro()
 
-add_library(raymarine-anenometer SHARED src/plugins/raymarine-anenometer.c)
-set_target_properties(raymarine-anenometer PROPERTIES PREFIX "")
-target_include_directories(raymarine-anenometer AFTER PRIVATE src)
-
-add_library(r4dcb08-temperature SHARED src/plugins/r4dcb08-temperature.c)
-set_target_properties(r4dcb08-temperature PROPERTIES PREFIX "")
-target_include_directories(r4dcb08-temperature AFTER PRIVATE src)
-
-install(TARGETS kingpigeon raymarine-anenometer r4dcb08-temperature DESTINATION ${APP_DIR}/lib/plugins)
+add_plugin(kingpigeon           src/plugins/kingpigeon-encoder.c)
+add_plugin(raymarine-anenometer src/plugins/raymarine-anenometer.c)
+add_plugin(r4dcb08-temperature  src/plugins/r4dcb08-temperature.c)
 
 # Build & install simulation
 add_executable(modbus-simulation simulation/simulation.c simulation/data-simulated.c)
