@@ -204,7 +204,7 @@ static int ParsePollingPeriod(afb_api_t api, json_object *config, uint *period) 
   double period_s = 0, period_m = 0, freq = 0;
   *period = 0;
 
-  err = rp_jsonc_unpack(config, "{s?i,s?f,s?f,s?f}",
+  err = rp_jsonc_unpack(config, "{s?i,s?F,s?F,s?F}",
       "period", period, "period_s", &period_s, "period_m", &period_m,
       "hertz", &freq);
   if (err) {

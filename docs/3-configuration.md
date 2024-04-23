@@ -141,7 +141,8 @@ This behavior can be tweaked to one's needs in the configuration:
   configure the delay (respectively in milliseconds, seconds and
   minutes) between each read. If multiple of these values are used, they
   are added (so a `period_s` of 2 and a `period` of 1 will result in a
-  delay of 2001 milliseconds).
+  delay of 2001 milliseconds). `period_s` and `period_m` support integer
+  and floating point values.
 - a sensor can have an `idle` value to send an event even if the data
   read on the sensor hasn't changed. An `idle` of 1 means "always send
   an event even if the data hasn't changed"; an `idle` of 5 means "send
