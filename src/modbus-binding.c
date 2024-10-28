@@ -42,9 +42,11 @@ static void PingTest(afb_req_t request, unsigned argc,
   char response[32];
   afb_data_t arg, repl;
   int curcount = ++count;
-  afb_req_param_convert(request, 0, AFB_PREDEFINED_TYPE_STRINGZ, &arg);
-  AFB_REQ_NOTICE(request, "ping count=%d query=%s", curcount,
-                 (const char *)afb_data_ro_pointer(arg));
+  if (argc > 0) {
+    afb_req_param_convert(request, 0, AFB_PREDEFINED_TYPE_STRINGZ, &arg);
+    AFB_REQ_NOTICE(request, "ping count=%d query=%s", curcount,
+                   (const char *)afb_data_ro_pointer(arg));
+  }
   snprintf(response, sizeof(response), "\"pong=%d\"", curcount);
   repl = afb_data_json_copy(response, 0);
   afb_req_reply(request, 0, 1, &repl);
