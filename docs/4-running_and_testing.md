@@ -97,3 +97,69 @@ indicates that you provide a configuration for another binding.
 **Warning:** some TCP Modbus devices, as KingPigeon's, check SlaveID
 even for building I/O. Config samples make the assumption that your
 slaveID is set to `1`.
+
+## Low level debugging
+
+Before incriminating the binding part, make sure the physical connection to the modbus device works properly.
+
+### modbus-cli
+
+For both TCP or serial modbus debugging, [modbus-cli](https://github.com/favalex/modbus-cli) is a useful Python command line utility to help debugging issues.
+
+It can be installed in a virtual Python environment with `pip install modbus_cli`
+
+### wireshark
+
+For TCP Modbus, wireshark can be used to capture traffic and is able to decode the Modbus protocol
+
+### Redirect a serial interface over the network
+
+It may be useful to redirect a serial interface over the network. The `socat` utility can be used for that purpose.
+
+e.g. to redirect a serial interface over the 54321 TCP port and have it as /tmp/local_device on your local machine: (extract from `modbus-cli` documentation):
+```
+remote$ socat -d -d tcp-l:54321,reuseaddr file:/dev/ttyUSB0,raw,b19200
+local$ socat -d -d tcp:remote_ip:54321 pty,link=/tmp/local_device,unlink-close=0
+```
+
+### Log serial traffic on file
+
+It may be useful to log everything that is read from or written to a serial interface to files for a posteriori analysis.
+
+`socat` can again be used for that purpose.
+
+- `socat -r r1.txt -R r2.txt /dev/ttyX,b9600,raw,echo=0 PTY,/tmp/ttyX,raw,echo=0,wait-slave` will create a PTY on `/tmp/ttyX`
+- point your application (here the binding) to `/tmp/ttyX` rather than `/dev/ttyX`
+- the files `r1.txt` and `r2.txt` will then contain traffic from both sides of the channel
+
+### Generate a modbus request from the command line
+
+For serial Modbus communication, you can generate a simple Modbus request from the command line.
+
+e.g. for a device with slave id = 1, a register read:
+
+```
+echo -ne "\x01\x04\x00\x00\x00\x02\x71\xcb" | socat - /dev/ttyUSB_RS485,b9600 | od -t x1
+```
+
+Explanation:
+- `socat - /dev/ttyUSB_RS485,b9600` will read bytes from standard input and write them to `/dev/ttuUSB_RS485` (setting the baud rate to 9600)
+- the bytes sent are made of:
+  - `01`: the slave id (1)
+  - `04`: the modbus function, 4 = register read
+  - `00 00 00 02`: number of 16-bit registers to read (2)
+  - `71 CB`: the CRC16 of the message
+- `od -t x1` displays the reply in hexadecimal
+
+Typical output:
+```
+0000000 01 04 04 43 73 26 71 c5 9f
+0000011
+```
+
+Interpretation:
+- `01`: slave id
+- `04`: function id (4 = register read)
+- `04`: number of bytes
+- `43 73 26 71`: the actual value (243.15 in 32-bit float)
+- `C5 9F`: CRC16
