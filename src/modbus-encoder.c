@@ -350,10 +350,10 @@ static ModbusFormatCbT coreEncodersCB[] = {
   {.uid="INT32"     , .info="json_integer", .nbreg=2, .decodeCB=mbDecodeInt32  , .encodeCB=mbEncodeInt32},
   {.uid="UINT32"    , .info="json_integer", .nbreg=2, .decodeCB=mbDecodeUInt32 , .encodeCB=mbEncodeUInt32},
   {.uid="INT64"     , .info="json_integer", .nbreg=2, .decodeCB=mbDecodeInt64  , .encodeCB=mbEncodeInt64},
-  {.uid="FLOAT_ABCD", .info="json_float",   .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_ABCD},
-  {.uid="FLOAT_BADC", .info="json_float",   .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_BADC},
-  {.uid="FLOAT_DCBA", .info="json_float",   .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_DCBA},
-  {.uid="FLOAT_CDAB", .info="json_float",   .nbreg=4, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_CDAB},
+  {.uid="FLOAT_ABCD", .info="json_float",   .nbreg=2, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_ABCD},
+  {.uid="FLOAT_BADC", .info="json_float",   .nbreg=2, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_BADC},
+  {.uid="FLOAT_DCBA", .info="json_float",   .nbreg=2, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_DCBA},
+  {.uid="FLOAT_CDAB", .info="json_float",   .nbreg=2, .decodeCB=mbDecodeFloat64, .encodeCB=mbEncodeFloat64, .subtype=MB_FLOAT_CDAB},
 
   {.uid= NULL} // must be null terminated
 };
