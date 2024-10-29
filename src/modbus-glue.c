@@ -31,6 +31,7 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <sys/file.h>
 
 static int ModbusFormatResponse(ModbusSensorT *sensor,
                                 json_object **responseJ) {
@@ -713,6 +714,17 @@ int ModbusRtuConnect(afb_api_t api, ModbusConnectionT *connection, const char *r
           rtu_uid, ttydev, speed);
       modbus_free(ctx);
       goto OnErrorExit;
+    }
+
+    //
+    // Avoid multiple access to the same device by acquiring an exclusive lock.
+    //
+    if (flock(modbus_get_socket(ctx), LOCK_EX | LOCK_NB) == -1) {
+      AFB_API_ERROR(
+          api,
+          "ModbusRtuConnect: fail to lock tty device uid=%s ttydev=%s, %s",
+          rtu_uid, ttydev, errno == EWOULDBLOCK ? "device already in use" : "fatal error");
+      return 1;
     }
 
     // serial link do not support simultaneous read
