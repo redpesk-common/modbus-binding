@@ -6,6 +6,14 @@ description: @PROJECT_DESCRIPTION@
 author: @PROJECT_AUTHOR@ <@PROJECT_AUTHOR_MAIL@>
 license: @PROJECT_LICENSE@
 
+provided-binding:
+  - name: modbus
+    value: lib/modbus-binding.so
+
+file-properties:
+  - name: lib/modbus-binding.so
+    value: public
+
 targets:
   - target: main
     content:
@@ -13,10 +21,4 @@ targets:
       type: application/vnd.redpesk.resource
     required-permission:
       - urn:AGL:permission::partner:scope-platform
-    provided-binding:
-      - name: modbus
-        value: lib/modbus-binding.so
 
-file-properties:
-  - name: lib/modbus-binding.so
-    value: public
