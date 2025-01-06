@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2018-2024 "IoT.bzh"
- * Author "Arthur Guyader" <arthur.guyader@iot.bzh>
+ * Copyright (C) 2018-2025 IoT.bzh Company
+ * Author: "Arthur Guyader" <arthur.guyader@iot.bzh>
  *
  * Use of this source code is governed by an MIT-style
  * license that can be found in the LICENSE file or at https://opensource.org/licenses/MIT.

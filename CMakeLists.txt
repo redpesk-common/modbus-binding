@@ -1,7 +1,7 @@
 ###########################################################################
-# Copyright 2015-2024 IoT.bzh
+# Copyright (C) 2015-2025 IoT.bzh Company
 #
-# authors: Fulup Ar Foll <fulup@iot.bzh>
+# Author: Fulup Ar Foll <fulup@iot.bzh>
 #          Louis-Baptiste Sobolewski <lb.sobolewski@iot.bzh>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

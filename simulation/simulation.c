@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 - 2024 "IoT.bzh"
+ * Copyright (C) 2022-2025 - 2024 IoT.bzh Company
  *
  * Author: Valentin Lefebvre <valentin.lefebvre@iot.bzh
  *
